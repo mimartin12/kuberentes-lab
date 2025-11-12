@@ -1,0 +1,28 @@
+  - name: Add Docker GPG apt key
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+
+  - name: Add Docker apt repository
+    apt_repository:
+      repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ docker_repo_codename }} stable"
+      state: present
+
+  - name: Install docker-ce
+    apt:
+      name: docker-ce
+      state: latest
+      update_cache: yes
+  
+  - name: Ensure docker group
+    group:
+      name: docker
+      state: present
+    
+  - name: Ensure users are in docker group
+    user:
+      name: "{{ item }}"
+      groups: docker
+      append: yes
+    loop:
+      - micaiah

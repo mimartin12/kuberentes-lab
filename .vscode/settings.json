@@ -1,0 +1,5 @@
+{
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json": "file:///Users/micaiah/Desktop/kube-lab/bootstrap/roles/k3d-node/tasks/k3d.yml"
+    }
+}

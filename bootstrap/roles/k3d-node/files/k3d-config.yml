@@ -1,0 +1,29 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: lab
+servers: 1
+agents: 3
+ports:
+ - port: 80:80
+   nodeFilters:
+     - loadbalancer
+registries: # define how registries should be created or used
+  create: # creates a default registry to be used with the cluster; same as `--registry-create registry.localhost`
+    name: registry.localhost
+    host: "0.0.0.0"
+    hostPort: "5000"
+options:
+  kubeconfig:
+    updateDefaultKubeconfig: true # add new cluster to your default Kubeconfig; same as `--kubeconfig-update-default` (default: true)
+    switchCurrentContext: true # also set current-context to the new cluster's context; same as `--kubeconfig-switch-context` (default: true)
+      #  runtime: # runtime (docker) specific options
+      #gpuRequest: all # same as `--gpus all`
+      #labels:
+      #- label: bar=baz # same as `--runtime-label 'bar=baz@agent:1'` -> this results in a runtime (docker) container label
+      # nodeFilters:
+      #   - agent:1
+      #uiimits:
+      #- name: nofile
+      #  soft: 26677
+      #  hard: 26677

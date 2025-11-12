@@ -1,0 +1,38 @@
+---
+- name: Initialize Ubuntu node
+  hosts: all
+  become: true
+  roles:
+    - k3d-node
+  vars:
+    docker_repo_codename: "noble"
+
+  tasks:
+    - name: Ensure APT transport and common utilities are present
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: yes
+
+    - name: Update apt cache and upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install aptitude
+      apt:
+        name: aptitude
+        state: latest
+
+    - name: Install curl and vim
+      apt:
+        name:
+          - curl
+          - vim
+        state: present
+
+      
