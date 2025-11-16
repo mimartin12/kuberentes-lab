@@ -1,0 +1,15 @@
+---
+# Lab repository
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kubernetes-lab
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+    url: https://github.com/mimartin12/kuberentes-lab.git
+    name: kubernetes-lab
+    project: default
+    type: git
+---
