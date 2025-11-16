@@ -1,1 +1,7 @@
 # Values for Argo CD Application
+configs:
+  repositories:
+    kubernetes-lab-repo:
+      url: https://github.com/mimartin12/kuberentes-lab
+      name: kubernetes-lab
+      type: git
