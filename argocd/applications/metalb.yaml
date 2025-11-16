@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metallb
+  namespace: argocd
+  labels:
+    name: metallb
+    stage: provisioning
+spec:
+  project: default
+  sources:
+  # Metal LB helm chart
+    - repoURL: https://metallb.github.io/metallb
+      targetRevision: 0.15.2
+      chart: metallb
+      helm:
+        valueFiles:
+          - $values/argocd/applications/values/metallb.yaml
+        ignoreMissingValueFiles: true
+  # Value files to override defaults
+    - repoURL: https://github.com/mimartin12/kuberentes-lab
+      targetRevision: HEAD
+      ref: values
+  # Additional configuration, such as IPAddressPool and L2Advertisement
+    - repoURL: https://github.com/mimartin12/kuberentes-lab
+      targetRevision: HEAD
+      path: argocd/applications/manifests/metallb
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: metallb-system
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: "5s"
+        factor: 2
+        maxDuration: "1m"
