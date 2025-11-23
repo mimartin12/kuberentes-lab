@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  labels:
+    name: cert-manager
+    stage: provisioning
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.jetstack.io
+      targetRevision: v1.19.0
+      chart: cert-manager
+      helm:
+        valueFiles:
+          - $values/argocd/applications/values/cert-manager.yaml
+        ignoreMissingValueFiles: true
+    - repoURL: https://github.com/mimartin12/kuberentes-lab
+      targetRevision: HEAD
+      ref: values
+    # Additional configuration, such as cluster issuers
+    - repoURL: https://github.com/mimartin12/kuberentes-lab
+      targetRevision: HEAD
+      path: argocd/applications/manifests/cert-manager
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: "5s"
+        factor: 2
+        maxDuration: "1m"
