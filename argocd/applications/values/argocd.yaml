@@ -1,4 +1,7 @@
 # Values for Argo CD Application
+global:
+  domain: lab.grove.local
+
 configs:
   params:
     server.insecure: true
@@ -15,6 +18,3 @@ server:
     annotations:
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-    extraTls:
-      - hosts:
-        - lab.grove.local
