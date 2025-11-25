@@ -1,6 +1,6 @@
 # Values for Argo CD Application
 global:
-  domain: lab.grove.local
+  domain: argocd.idkthisisademo.lol
 
 configs:
   # params:
