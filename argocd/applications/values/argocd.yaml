@@ -3,8 +3,8 @@ global:
   domain: lab.grove.local
 
 configs:
-  params:
-    server.insecure: true
+  # params:
+    # server.insecure: true
   repositories:
     kubernetes-lab-repo:
       url: https://github.com/mimartin12/kuberentes-lab
@@ -16,6 +16,7 @@ server:
     enabled: true
     ingressClassName: nginx
     annotations:
-      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      cert-manager.io/cluster-issuer: letsencrypt-staging
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     tls: true
