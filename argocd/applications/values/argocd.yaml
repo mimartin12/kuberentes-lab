@@ -3,8 +3,8 @@ global:
   domain: argocd.idkthisisademo.lol
 
 configs:
-  # params:
-    # server.insecure: true
+  params:
+    server.insecure: true
   repositories:
     kubernetes-lab-repo:
       url: https://github.com/mimartin12/kuberentes-lab
@@ -17,6 +17,6 @@ server:
     ingressClassName: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-staging
-      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     tls: true
