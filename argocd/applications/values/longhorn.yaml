@@ -2,3 +2,8 @@ ingress:
   enabled: true
   host: longhorn.idkthisisademo.lol
   ingressClassName: nginx
+
+serviceAccount:
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "-1"
