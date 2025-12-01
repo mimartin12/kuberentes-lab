@@ -4,7 +4,8 @@
     "config:recommended"
   ],
   "enabledManagers": [
-    "argocd"
+    "argocd",
+    "pep621"
   ],
   "argocd": {
     "managerFilePatterns": [

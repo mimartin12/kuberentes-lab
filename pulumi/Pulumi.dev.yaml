@@ -1,0 +1,5 @@
+config:
+  kubernets-lab:proxmox_endpoint: https://192.168.1.111:8006/
+  kubernets-lab:proxmox_username: terraform-prov@pve
+  kubernets-lab:proxmox_password:
+    secure: AAABAHJeMJheQlU9CIMrKTugDAtsLmChiewGnW7x5X02A4dMjaXINO0KyyMrHw==

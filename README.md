@@ -3,7 +3,7 @@ Kubernets lab that currently uses K3d to setup a Kubernets cluster and deploy va
 
 ## Proxmox
 The lab is hosted on Proxmox.
-Conifguration is needed for the Terraform provider.
+Configuration is needed for the Pulumi Proxmox provider.
 
 ```bash
 # Create custom pve role

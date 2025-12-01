@@ -1,0 +1,10 @@
+name: kubernets-lab
+runtime:
+  name: python
+  options:
+    toolchain: uv
+description: Pulumi + Kubernetes, yay!
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: https://www.pulumi.com/ai/api/project/c47a87aa-cfba-4eca-8a75-5d1e38c978f4.zip
