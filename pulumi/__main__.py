@@ -1,9 +1,12 @@
 import pulumi
-import pulumi_proxmoxve as proxmox
+import pulumi_proxmoxve as proxmoxve
+import talos_image_factory
 
 config = pulumi.Config()
 
-provider = proxmox.Provider(
+talos_version = config.get("talos_version") or "v1.11.5"
+
+provider = proxmoxve.Provider(
     "proxmoxve",
     endpoint=config.require("proxmox_endpoint"),
     username=config.require("proxmox_username"),
@@ -11,50 +14,71 @@ provider = proxmox.Provider(
     insecure=True,
 )
 
-virtual_machine = proxmox.vm.VirtualMachineArgs(
-    node_name="pve",
-    agent=proxmox.vm.VirtualMachineAgentArgs(
-        enabled=False,
-        trim=True,
-        type="virtio"
-    ),
-    bios="ovmf",
-    efi_disk=proxmox.vm.VirtualMachineEfiDiskArgs(
-        datastore_id="local-lvm",
-        file_format="raw",
-        type="4m",
-    ),
-    cpu=proxmox.vm.VirtualMachineCpuArgs(
-        cores=2,
-        sockets=1,
-        type="host"
-    ),
-    disks=[
-        proxmox.vm.VirtualMachineDiskArgs(
-            interface="scsi0",
-            size=20,
-            datastore_id="local-lvm",
-            file_format="raw",
-        )
-    ],
-    memory=proxmox.vm.VirtualMachineMemoryArgs(
-        dedicated=2048
-    ),
-    network_devices=[
-        proxmox.vm.VirtualMachineNetworkDeviceArgs(
-            model="virtio",
-            bridge="vmbr0"
-        )
-    ],
-    started=False,
-    cdrom=proxmox.vm.VirtualMachineCdromArgs(
-        file_id="none"
-    )
+talos_iso_url = talos_image_factory.create_talos_image_url(
+    "talos-iso-schematic",
+    talos_version=talos_version,
+    extensions=["siderolabs/qemu-guest-agent", "siderolabs/iscsi-tools"],
 )
 
-# Lab VMs
-k3d_master = proxmox.vm.VirtualMachine(
-    resource_name="k3d-master",
-    args=virtual_machine,
-    opts=pulumi.ResourceOptions(provider=provider)
+talos_iso = proxmoxve.download.File(
+    "talos-iso-download",
+    content_type="iso",
+    datastore_id="local",
+    node_name="pve",
+    url=talos_iso_url,
+    file_name=talos_iso_url.apply(lambda url: f"talos-{talos_version}-amd64.iso"),
+    opts=pulumi.ResourceOptions(provider=provider),
 )
+
+
+def create_talos_vm(name: str, ip_address: str, gateway: str = "192.168.1.1"):
+    return proxmoxve.vm.VirtualMachine(
+        name,
+        proxmoxve.vm.VirtualMachineArgs(
+            node_name="pve",
+            bios="ovmf",
+            efi_disk=proxmoxve.vm.VirtualMachineEfiDiskArgs(
+                datastore_id="local-lvm",
+                file_format="raw",
+                type="4m",
+            ),
+            cpu=proxmoxve.vm.VirtualMachineCpuArgs(cores=2, sockets=1, type="host"),
+            disks=[
+                proxmoxve.vm.VirtualMachineDiskArgs(
+                    interface="scsi0",
+                    size=20,
+                    datastore_id="local-lvm",
+                    file_format="raw",
+                ),
+            ],
+            memory=proxmoxve.vm.VirtualMachineMemoryArgs(dedicated=2048),
+            network_devices=[
+                proxmoxve.vm.VirtualMachineNetworkDeviceArgs(
+                    model="virtio", bridge="vmbr0"
+                )
+            ],
+            initialization=proxmoxve.vm.VirtualMachineInitializationArgs(
+                datastore_id="local-lvm",
+                type="nocloud",
+                interface="ide0",
+                ip_configs=[
+                    proxmoxve.vm.VirtualMachineInitializationIpConfigArgs(
+                        ipv4=proxmoxve.vm.VirtualMachineInitializationIpConfigIpv4Args(
+                            address=f"{ip_address}/24", gateway="192.168.1.1"
+                        )
+                    )
+                ],
+            ),
+            cdrom=proxmoxve.vm.VirtualMachineCdromArgs(
+                file_id=talos_iso.id, interface="ide2"
+            ),
+            boot_orders=["scsi0"],
+        ),
+        opts=pulumi.ResourceOptions(
+            provider=provider,
+            depends_on=[talos_iso],
+        ),
+    )
+
+
+talos_master_01 = create_talos_vm("talos-01-master", "192.168.1.160")
