@@ -82,3 +82,23 @@ def create_talos_vm(name: str, ip_address: str, gateway: str = "192.168.1.1"):
 
 
 talos_master_01 = create_talos_vm("talos-01-master", "192.168.1.160")
+
+# Add Talos config
+from talos_config import create_talos_secrets, apply_talos_config
+
+# Create secrets once for the cluster
+talos_secrets = create_talos_secrets("talos-cluster")
+
+# Apply config to node
+talos_node = apply_talos_config(
+    name="talos-01-master",
+    secrets=talos_secrets,
+    cluster_name="talos-cluster",
+    cluster_endpoint="https://192.168.1.160:6443",
+    node_ip="192.168.1.160",
+    role="controlplane",
+    hostname="talos-01-master",
+    vm=talos_master_01,
+)
+
+pulumi.export("kubeconfig", talos_node["kubeconfig"].kubeconfig_raw)
