@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium
+  namespace: argocd
+  labels:
+    name: cilium
+    stage: provisioning
+spec:
+  project: default
+  sources:
+    - repoURL: https://helm.cilium.io
+      targetRevision: 1.16.0
+      chart: cilium
+      helm:
+        valueFiles:
+          - $values/argocd/applications/values/cilium.yaml
+    - repoURL: https://github.com/mimartin12/kuberentes-lab
+      targetRevision: HEAD
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      # Don't delete resources not in Git
+      - RespectIgnoreDifferences=true
