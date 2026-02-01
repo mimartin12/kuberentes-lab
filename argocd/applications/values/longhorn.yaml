@@ -3,5 +3,6 @@ ingress:
   host: longhorn.idkthisisademo.lol
   ingressClassName: cilium
   annotations:
-    io.cilium/lb-ipam-ips: "192.168.1.241"
-  tls: false
+    cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+  tls: true
+  tlsSecret: longhorn-tls
