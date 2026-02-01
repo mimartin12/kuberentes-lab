@@ -4,6 +4,6 @@ ingress:
   ingressClassName: cilium
   annotations:
     io.cilium/lb-ipam-ips: "192.168.1.242"
-    cert-manager.io/cluster-issuer: letsencrypt-staging
+    cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
   tls: true
   tlsSecret: longhorn-tls
