@@ -97,13 +97,20 @@ talos_secrets = create_talos_secrets(cluster_name, talos_version=talos_version)
 kubeconfig_raw = None
 
 for node in nodes:
-    vm = create_talos_vm(
-        node["name"],
-        node["ip"],
-        gateway,
-        node.get("cpu", 2),
-        node.get("memory", 2048),
-    )
+    node_type = node.get("type", "proxmox")
+    
+    if node_type == "external":
+        vm = None  # No VM resource to manage
+        pulumi.log.info(f"Skipping VM creation for {node['name']} (external node at {node['ip']})")
+    else:
+        vm = create_talos_vm(
+            node["name"],
+            node["ip"],
+            gateway,
+            node.get("cpu", 2),
+            node.get("memory", 2048),
+        )
+    
     result = apply_talos_config(
         name=node["name"],
         secrets=talos_secrets,
@@ -162,3 +169,7 @@ argocd = Chart(
     namespace="argocd",
     opts=pulumi.ResourceOptions(provider=k8s_provider),
 )
+
+
+pulumi.export("talos_image_url", talos_iso_url)
+pulumi.export("talos_version", talos_version)

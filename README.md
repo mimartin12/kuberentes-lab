@@ -29,6 +29,34 @@ pulumi config set --secret proxmox_password <password>
 pulumi config set talos_version v1.11.5  # optional
 ```
 
+## Adding Nodes
+
+Configure nodes in the Pulumi stack, such as `Pulumi.dev.yaml`:
+
+**Proxmox managed nodes:**
+These are nodes that will be deployed on Proxmox by Pulumi and configuration can be managed with this project.
+
+```yaml
+kubernets-lab:nodes:
+  - name: talos-01-master
+    ip: "192.168.1.160"
+    role: controlplane
+    cpu: 2
+    memory: 3072
+```
+
+**External nodes:**
+Flexible external nodes that are not managed by this project, but can be adopted into the cluster.
+
+```yaml
+  - name: talos-02-master
+    ip: "192.168.1.162"
+    role: controlplane
+    type: external
+```
+
+For external nodes: create the VM manually with the Talos ISO (`pulumi stack output talos_image_url`), assign a static IP, and Pulumi will configure it.
+
 ## Deploy
 
 ```bash
