@@ -1,0 +1,3 @@
+pulumi/kubeconfig.yaml
+pulumi/uv.lock
+pulumi/talosconfig.yaml

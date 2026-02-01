@@ -1,14 +1,27 @@
 import pulumi
 import pulumi_proxmoxve as proxmoxve
+import pulumi_kubernetes as kubernetes
+from pulumi_kubernetes.helm.v4 import Chart, RepositoryOptsArgs
 import talos_image_factory
 from talos_config import create_talos_secrets, apply_talos_config
+import yaml
 
 config = pulumi.Config()
 talos_version = config.get("talos_version") or "v1.11.5"
+kubernetes_version = config.get(
+    "kubernetes_version"
+)  # Optional, defaults to Talos default if not specified
 cluster_name = config.get("cluster_name") or "talos-cluster"
 gateway = config.get("gateway") or "192.168.1.1"
 nodes = config.require_object("nodes")
 cluster_endpoint_ip = config.get("cluster_endpoint_ip") or nodes[0]["ip"]
+use_cilium = config.get_bool("use_cilium") or False
+cilium_version = config.get("cilium_version") or "1.16.0"
+
+# Load ArgoCD version from the ArgoCD application manifest
+with open("../argocd/applications/argocd.yaml", "r") as f:
+    argocd_app = yaml.safe_load(f)
+    argocd_version = argocd_app["spec"]["sources"][0]["targetRevision"]
 
 provider = proxmoxve.Provider(
     "proxmoxve",
@@ -17,6 +30,7 @@ provider = proxmoxve.Provider(
     password=config.require_secret("proxmox_password"),
     insecure=True,
 )
+
 
 talos_iso_url = talos_image_factory.create_talos_image_url(
     "talos-iso-schematic",
@@ -80,6 +94,7 @@ def create_talos_vm(name: str, ip: str, gateway: str, cpu: int = 2, memory: int 
 
 
 talos_secrets = create_talos_secrets(cluster_name, talos_version=talos_version)
+kubeconfig_raw = None
 
 for node in nodes:
     vm = create_talos_vm(
@@ -98,6 +113,52 @@ for node in nodes:
         role=node["role"],
         vm=vm,
         gateway=gateway,
+        use_cilium=use_cilium,
+        cilium_version=cilium_version,
+        kubernetes_version=kubernetes_version,
     )
     if node["role"] == "controlplane":
-        pulumi.export("kubeconfig", result["kubeconfig"].kubeconfig_raw)
+        kubeconfig_raw = result["kubeconfig"].kubeconfig_raw
+
+
+# Export talosconfig
+def create_talosconfig_dict(client_config):
+    return {
+        "context": cluster_name,
+        "contexts": {
+            cluster_name: {
+                "endpoints": [cluster_endpoint_ip],
+                "nodes": [cluster_endpoint_ip],
+                "ca": client_config["ca_certificate"],
+                "crt": client_config["client_certificate"],
+                "key": client_config["client_key"],
+            }
+        },
+    }
+
+
+talosconfig_dict = talos_secrets.client_configuration.apply(create_talosconfig_dict)
+
+pulumi.export("kubeconfig", kubeconfig_raw)
+pulumi.export(
+    "talosconfig",
+    talosconfig_dict.apply(lambda cfg: yaml.dump(cfg, default_flow_style=False)),
+)
+
+k8s_provider = kubernetes.Provider(
+    "k8s-provider",
+    kubeconfig=kubeconfig_raw,
+)
+
+# Deploy Argo CD
+argocd = Chart(
+    "argocd",
+    chart="argo-cd",
+    repository_opts=RepositoryOptsArgs(
+        repo="https://argoproj.github.io/argo-helm",
+    ),
+    version=argocd_version,
+    value_yaml_files=[pulumi.FileAsset("../argocd/applications/values/argocd.yaml")],
+    namespace="argocd",
+    opts=pulumi.ResourceOptions(provider=k8s_provider),
+)
