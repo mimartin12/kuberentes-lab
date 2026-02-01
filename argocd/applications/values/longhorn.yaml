@@ -6,4 +6,7 @@ ingress:
     io.cilium/lb-ipam-ips: "192.168.1.242"
     cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
   tls: true
+  secureBackends: false
   tlsSecret: longhorn-tls
+  path: /
+  pathType: Prefix
