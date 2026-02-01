@@ -15,7 +15,8 @@ server:
   ingress:
     enabled: true
     ingressClassName: cilium
+    annotations:
+      io.cilium/lb-ipam-ips: "192.168.1.240"
     tls: false
   service:
-    type: LoadBalancer
-    loadBalancerIP: 192.168.1.240
+    type: ClusterIP
