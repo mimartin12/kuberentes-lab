@@ -53,9 +53,19 @@ Flexible external nodes that are not managed by this project, but can be adopted
     ip: "192.168.1.162"
     role: controlplane
     type: external
+    install_disk: "/dev/vda"  # Optional, defaults to /dev/sda
 ```
 
-For external nodes: create the VM manually with the Talos ISO (`pulumi stack output talos_image_url`), assign a static IP, and Pulumi will configure it.
+For external nodes:
+
+1. Create the VM manually with the Talos ISO (`pulumi stack output talos_image_url`)
+2. Configure disk bus type:
+   - **SATA/SCSI** → use `/dev/sda` (default)
+   - **VirtIO** → use `/dev/vda`
+   - Check with: `talosctl --nodes <ip> disks --insecure`
+3. Assign a static IP
+4. Ensure VM is running in maintenance mode
+5. Run `pulumi up` to configure and join the cluster
 
 ## Deploy
 

@@ -22,3 +22,10 @@ config:
       role: worker
       cpu: 1
       memory: 3072
+
+    # Flexible nodes
+    - name: talos-03-worker
+      ip: "192.168.1.162"
+      role: worker
+      type: external
+      install_disk: "/dev/vda"

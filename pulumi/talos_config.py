@@ -166,6 +166,9 @@ def apply_talos_config(
     # Build machine config patch
     machine_patch = {
         "machine": {
+            "install": {
+                "disk": install_disk,
+            },
             "network": {
                 "hostname": hostname or name,
                 "nameservers": nameservers,
@@ -245,6 +248,8 @@ def apply_talos_config(
         client_configuration=secrets.client_configuration,
         machine_configuration_input=machine_config.machine_configuration,
         node=node_ip,
+        endpoint=node_ip if vm is None else None,  # For external nodes, use explicit endpoint
+        apply_mode="auto",
         opts=pulumi.ResourceOptions(depends_on=[vm] if vm else []),
     )
 

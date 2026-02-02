@@ -123,6 +123,7 @@ for node in nodes:
         use_cilium=use_cilium,
         cilium_version=cilium_version,
         kubernetes_version=kubernetes_version,
+        install_disk=node.get("install_disk", "/dev/sda"),
     )
     if node["role"] == "controlplane":
         kubeconfig_raw = result["kubeconfig"].kubeconfig_raw
