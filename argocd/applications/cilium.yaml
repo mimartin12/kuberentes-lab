@@ -18,6 +18,10 @@ spec:
     - repoURL: https://github.com/mimartin12/kuberentes-lab
       targetRevision: HEAD
       ref: values
+    # Additional configuration, such as IP Pools
+    - repoURL: https://github.com/mimartin12/kuberentes-lab
+      targetRevision: HEAD
+      path: argocd/applications/manifests/cilium
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
