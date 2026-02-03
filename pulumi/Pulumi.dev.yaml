@@ -2,7 +2,7 @@ config:
   kubernets-lab:proxmox_endpoint: https://192.168.1.111:8006/
   kubernets-lab:proxmox_username: terraform-prov@pve
   kubernets-lab:proxmox_password:
-    secure: AAABAHJeMJheQlU9CIMrKTugDAtsLmChiewGnW7x5X02A4dMjaXINO0KyyMrHw==
+    secure: AAABADYp+8KAN9ESX4uVG6jfEKtBD7OpasFhqqnsqACQPYNpv22T8dGAz439KA==
   kubernets-lab:talos_version: "v1.11.5"
   kubernets-lab:kubernetes_version: "1.34.0"
   kubernets-lab:cluster_name: "talos-cluster"
@@ -17,15 +17,15 @@ config:
       role: controlplane
       cpu: 2
       memory: 3072
-    - name: talos-02-worker
-      ip: "192.168.1.161"
-      role: worker
-      cpu: 1
-      memory: 3072
 
-    # Flexible nodes
-    - name: talos-03-worker
-      ip: "192.168.1.162"
+    # # Flexible nodes
+    - name: talos-master-02
+      ip: "192.168.1.164"
+      role: controlplane
+      type: external
+      install_disk: "/dev/vda"
+    - name: talos-worker-01
+      ip: "192.168.1.163"
       role: worker
       type: external
       install_disk: "/dev/vda"

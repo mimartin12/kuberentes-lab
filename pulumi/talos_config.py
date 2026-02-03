@@ -1,6 +1,7 @@
 import pulumi
 import pulumiverse_talos as talos
 import json
+import copy
 from pathlib import Path
 
 
@@ -142,7 +143,13 @@ def _indent(text: str, spaces: int) -> str:
 
 
 def create_talos_secrets(name: str, talos_version: str = None):
-    return talos.machine.Secrets(f"{name}-secrets", talos_version=talos_version)
+    # Include version in resource name to force regeneration when version changes
+    resource_name = (
+        f"{name}-secrets-{talos_version.replace('.', '-')}"
+        if talos_version
+        else f"{name}-secrets"
+    )
+    return talos.machine.Secrets(resource_name, talos_version=talos_version)
 
 
 def apply_talos_config(
@@ -153,6 +160,7 @@ def apply_talos_config(
     node_ip: str,
     role: str = "controlplane",
     install_disk: str = "/dev/sda",
+    install_image: str = None,
     hostname: str = None,
     vm: pulumi.Resource = None,
     gateway: str = "192.168.1.1",
@@ -160,6 +168,7 @@ def apply_talos_config(
     use_cilium: bool = False,
     cilium_version: str = "1.16.0",
     kubernetes_version: str = None,
+    bootstrap: bool = False,
 ):
     nameservers = nameservers or ["192.168.1.1"]
 
@@ -168,6 +177,7 @@ def apply_talos_config(
         "machine": {
             "install": {
                 "disk": install_disk,
+                "wipe": True,  # Force wipe disk on installation
             },
             "network": {
                 "hostname": hostname or name,
@@ -210,7 +220,18 @@ def apply_talos_config(
             ],
         }
 
-    network_patch = json.dumps(machine_patch)
+    def _render_machine_patch(image: str = None) -> str:
+        patch = copy.deepcopy(machine_patch)
+        if image:
+            patch["machine"]["install"]["image"] = image
+        return json.dumps(patch)
+
+    if install_image is None:
+        network_patch = _render_machine_patch()
+    else:
+        network_patch = pulumi.Output.from_input(install_image).apply(
+            lambda image: _render_machine_patch(image)
+        )
 
     # Convert secrets output to the format expected by get_configuration_output
     machine_secrets_dict = secrets.machine_secrets.apply(
@@ -248,14 +269,16 @@ def apply_talos_config(
         client_configuration=secrets.client_configuration,
         machine_configuration_input=machine_config.machine_configuration,
         node=node_ip,
-        endpoint=node_ip if vm is None else None,  # For external nodes, use explicit endpoint
+        endpoint=(
+            node_ip if vm is None else None
+        ),  # For external nodes, use explicit endpoint
         apply_mode="auto",
         opts=pulumi.ResourceOptions(depends_on=[vm] if vm else []),
     )
 
     result = {"config_apply": config_apply}
 
-    if role == "controlplane":
+    if role == "controlplane" and bootstrap:
         result["bootstrap"] = talos.machine.Bootstrap(
             f"{name}-bootstrap",
             client_configuration=secrets.client_configuration,
