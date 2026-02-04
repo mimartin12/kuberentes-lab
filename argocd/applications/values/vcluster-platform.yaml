@@ -6,8 +6,9 @@ admin:
 
 ingress:
   enabled: true
-  host: vcluster-platform.example
+  host: vcluster.idkthisisademo.lol
   name: vcluster-platform-ingress
+  ingressClass: cilium
 
 audit:
   enableSideCar: true
