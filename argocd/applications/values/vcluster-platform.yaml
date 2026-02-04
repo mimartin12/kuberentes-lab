@@ -1,0 +1,17 @@
+# admin
+admin:
+  create: true
+  username: admin
+  password: password
+
+ingress:
+  enabled: true
+  host: vcluster-platform.example
+  name: vcluster-platform-ingress
+
+audit:
+  enableSideCar: true
+  level: 1
+
+config:
+  loftHost: "https://vcluster-platform.example"
