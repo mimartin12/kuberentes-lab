@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
   labels:
     name: cilium
-    stage: provisioning
+    stage: network
 spec:
   project: default
   sources:
