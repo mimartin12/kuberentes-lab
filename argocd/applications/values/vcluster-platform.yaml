@@ -20,4 +20,4 @@ audit:
   level: 1
 
 config:
-  loftHost: "https://vcluster-platform.example"
+  loftHost: "https://vcluster.idkthisisademo.lol"
