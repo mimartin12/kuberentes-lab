@@ -9,7 +9,7 @@ ingress:
   host: vcluster.idkthisisademo.lol
   name: vcluster-platform-ingress
   ingressClass: cilium
-  annotation:
+  annotations:
     cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
   tls:
     enabled: true
