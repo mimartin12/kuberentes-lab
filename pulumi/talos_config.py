@@ -283,6 +283,7 @@ def apply_talos_config(
             f"{name}-bootstrap",
             client_configuration=secrets.client_configuration,
             node=node_ip,
+            endpoint=node_ip,
             opts=pulumi.ResourceOptions(depends_on=[config_apply]),
         )
 
@@ -290,6 +291,7 @@ def apply_talos_config(
             f"{name}-kubeconfig",
             client_configuration=secrets.client_configuration,
             node=node_ip,
+            endpoint=node_ip,
             opts=pulumi.ResourceOptions(depends_on=[result["bootstrap"]]),
         )
 
