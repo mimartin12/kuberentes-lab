@@ -12,13 +12,18 @@ config:
   kubernets-lab:use_cilium: true
   kubernets-lab:cilium_version: "1.16.0"
   kubernets-lab:nodes:
-    - name: talos-01-master
+    - name: talos-master-01
       ip: "192.168.1.160"
       role: controlplane
       cpu: 2
-      memory: 4096
-    - name: talos-02-worker
+      memory: 2048
+    - name: talos-master-02
       ip: "192.168.1.161"
+      role: controlplane
+      cpu: 2
+      memory: 2048
+    - name: talos-worker-01
+      ip: "192.168.1.162"
       role: worker
       cpu: 2
       memory: 4096
