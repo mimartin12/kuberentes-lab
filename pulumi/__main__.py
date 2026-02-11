@@ -45,7 +45,7 @@ talos_iso = proxmoxve.download.File(
     "talos-iso-download",
     content_type="iso",
     datastore_id="local",
-    node_name="pve",
+    node_name="pve01",
     url=talos_iso_url,
     file_name=talos_iso_url.apply(
         lambda url: f"talos-{talos_version}-{url.split('/')[-4]}-nocloud-amd64.iso"
@@ -58,7 +58,7 @@ talos_iso = proxmoxve.download.File(
 def create_talos_vm(name: str, ip: str, gateway: str, cpu: int = 2, memory: int = 2048):
     return proxmoxve.vm.VirtualMachine(
         name,
-        node_name="pve",
+        node_name="pve01",
         agent=proxmoxve.vm.VirtualMachineAgentArgs(
             enabled=True,
             type="virtio",
