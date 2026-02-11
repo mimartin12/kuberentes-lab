@@ -11,9 +11,9 @@ spec:
     namespace: vcluster-platform
     server: "https://kubernetes.default.svc"
   sources:
-    - repoURL: "https://github.com/mimartin12/loft"
-      targetRevision: HEAD
-      path: chart
+    - repoURL: "https://charts.loft.sh"
+      targetRevision: 4.6.1
+      chart: vcluster-platform
       helm:
         valueFiles:
         - $values/argocd/applications/values/vcluster-platform.yaml
