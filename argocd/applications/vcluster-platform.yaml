@@ -13,7 +13,7 @@ spec:
   sources:
     - repoURL: "https://github.com/mimartin12/loft.git"
       targetRevision: HEAD
-      path: charts
+      path: chart
       helm:
         valueFiles:
         - $values/argocd/applications/values/vcluster-platform.yaml
