@@ -12,6 +12,9 @@ ingress:
   pathType: Prefix
   annotations:
     cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+    io.cilium.ingress/force-https: "true"
+    io.cilium.ingress/websocket: "enabled"
+    io.cilium.ingress/loadbalancer-mode: "dedicated"
   tls:
     enabled: true
     secretName: vcluster-platform-tls
