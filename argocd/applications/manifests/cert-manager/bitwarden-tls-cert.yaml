@@ -3,6 +3,8 @@ kind: Certificate
 metadata:
   name: bitwarden-tls-certs
   namespace: external-secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   secretName: bitwarden-tls-certs
   issuerRef:
