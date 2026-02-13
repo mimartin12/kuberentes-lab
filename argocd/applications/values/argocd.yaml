@@ -5,10 +5,6 @@ global:
 configs:
   params:
     server.insecure: true
-    timeout.reconciliation: "300s"
-    server.repo.server.timeout.seconds: "300"
-    controller.repo.server.timeout.seconds: "300"
-    reposerver.git.request.timeout: "300s"
   repositories:
     kubernetes-lab-repo:
       url: https://github.com/mimartin12/kuberentes-lab
@@ -18,7 +14,6 @@ configs:
       url: https://github.com/mimartin12/loft
       name: loft-fork
       type: git
-      shallowClone: "true"
 
 server:
   ingress:
