@@ -3,8 +3,6 @@ global:
   domain: argocd.idkthisisademo.lol
 
 configs:
-  cm:
-    kustomize.buildOptions: --enable-helm
   params:
     server.insecure: true
   repositories:

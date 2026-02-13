@@ -10,10 +10,17 @@ spec:
   destination:
     namespace: vcluster-platform
     server: "https://kubernetes.default.svc"
-  source:
-    repoURL: https://github.com/mimartin12/kuberentes-lab
-    targetRevision: HEAD
-    path: argocd/applications/manifests/vcluster-platform
+  sources:
+    - repoURL: "https://github.com/mimartin12/loft.git"
+      targetRevision: master
+      path: chart
+      helm:
+        valueFiles:
+        - $values/argocd/applications/values/vcluster-platform.yaml
+        ignoreMissingValueFiles: true
+    - repoURL: https://github.com/mimartin12/kuberentes-lab
+      targetRevision: HEAD
+      ref: values
   project: default
   syncPolicy:
     automated:
