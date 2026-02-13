@@ -5,7 +5,9 @@ global:
 configs:
   params:
     server.insecure: true
+    timeout.reconciliation: "300s"
     server.repo.server.timeout.seconds: "300"
+    controller.repo.server.timeout.seconds: "300"
     reposerver.git.request.timeout: "300s"
   repositories:
     kubernetes-lab-repo:
