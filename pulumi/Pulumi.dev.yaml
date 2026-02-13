@@ -31,6 +31,10 @@ config:
       pcie_devices:
         - "gpu"
         - "gpuaudio"
+      taints:
+        - key: nvidia.com/gpu
+          value: "true"
+          effect: NoSchedule
     - name: talos-worker-02
       ip: "192.168.1.163"
       role: worker

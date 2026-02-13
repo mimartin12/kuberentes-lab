@@ -1,5 +1,11 @@
 runtimeClassName: nvidia
 
+tolerations:
+  - key: nvidia.com/gpu
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
+
 affinity: null
 
 # Configuration for device discovery
