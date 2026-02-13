@@ -1,0 +1,35 @@
+runtimeClassName: nvidia
+
+affinity: null
+
+# Configuration for device discovery
+config:
+  # Device discovery strategy: auto, nvml, or tegra
+  deviceDiscoveryStrategy: auto
+  
+  # Fail if initialization fails
+  failOnInitError: true
+
+# Resource configuration
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+# Enable MPS support (Multi-Process Service) for GPU sharing
+# Allows multiple CUDA processes to share a single GPU
+mps:
+  root: /run/nvidia/mps
+
+# Time slicing configuration for virtual GPU support
+# Enables multiple pods to share the same physical GPU
+sharing:
+  timeSlicing:
+    renameByDefault: false
+    failRequestsGreaterThanOne: false
+    resources:
+      - name: nvidia.com/gpu
+        replicas: 2

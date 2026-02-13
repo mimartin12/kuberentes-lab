@@ -27,3 +27,12 @@ config:
       role: worker
       cpu: 2
       memory: 4096
+      talosImage: gpu
+      pcie_devices:
+        - "gpu"
+        - "gpuaudio"
+    - name: talos-worker-02
+      ip: "192.168.1.163"
+      role: worker
+      cpu: 2
+      memory: 4096
