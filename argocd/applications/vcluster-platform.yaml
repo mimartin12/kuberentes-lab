@@ -14,8 +14,6 @@ spec:
     repoURL: https://github.com/mimartin12/kuberentes-lab
     targetRevision: HEAD
     path: argocd/applications/manifests/vcluster-platform
-    kustomize:
-      enableHelm: true
   project: default
   syncPolicy:
     automated:
