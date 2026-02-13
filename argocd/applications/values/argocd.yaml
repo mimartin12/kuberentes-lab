@@ -15,6 +15,7 @@ configs:
       url: https://github.com/mimartin12/loft
       name: loft-fork
       type: git
+      shallowClone: true
 
 server:
   ingress:
