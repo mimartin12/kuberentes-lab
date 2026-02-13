@@ -11,7 +11,7 @@ spec:
     namespace: vcluster-platform
     server: "https://kubernetes.default.svc"
   sources:
-    - repoURL: "https://github.com/mimartin12/loft.git"
+    - repoURL: "https://github.com/mimartin12/loft"
       targetRevision: master
       path: chart
       helm:
