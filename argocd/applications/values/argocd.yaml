@@ -5,7 +5,8 @@ global:
 configs:
   params:
     server.insecure: true
-    reposerver.git.request.timeout: "300s"
+    server.repo.server.timeout.seconds: "300"
+    reposerver.git.request.timeout: "300"
   repositories:
     kubernetes-lab-repo:
       url: https://github.com/mimartin12/kuberentes-lab
