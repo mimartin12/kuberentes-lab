@@ -4,6 +4,9 @@ runtimeClassName: nvidia
 nodeSelector:
   kubernetes.io/hostname: talos-worker-01
 
+# Override default affinity to use only nodeSelector
+affinity: {}
+
 # Configuration for device discovery
 config:
   # Device discovery strategy: auto, nvml, or tegra
