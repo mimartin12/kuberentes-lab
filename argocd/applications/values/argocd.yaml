@@ -10,11 +10,6 @@ configs:
       url: https://github.com/mimartin12/kuberentes-lab
       name: kubernetes-lab
       type: git
-    loft-fork-repo:
-      url: https://github.com/mimartin12/loft
-      name: loft-fork
-      type: git
-
 server:
   ingress:
     enabled: true
