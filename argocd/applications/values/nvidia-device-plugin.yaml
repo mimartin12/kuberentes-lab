@@ -1,12 +1,8 @@
 runtimeClassName: nvidia
 
-tolerations:
-  - key: nvidia.com/gpu
-    operator: Equal
-    value: "true"
-    effect: NoSchedule
-
-affinity: null
+# Deploy only on the GPU worker node
+nodeSelector:
+  kubernetes.io/hostname: talos-worker-01
 
 # Configuration for device discovery
 config:
