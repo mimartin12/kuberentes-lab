@@ -1,7 +1,7 @@
 apiVersion: management.loft.sh/v1
 kind: Project
 metadata:
-  name: team-alpha
+  name: loft-p-team-alpha
   namespace: loft-p-team-alpha
   annotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
