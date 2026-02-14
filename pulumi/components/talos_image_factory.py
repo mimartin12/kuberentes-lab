@@ -1,4 +1,5 @@
 """TalosImageFactory Pulumi Component"""
+
 import pulumi
 import pulumi_proxmoxve as proxmoxve
 import pulumiverse_talos as talos
@@ -74,8 +75,8 @@ class TalosImageFactory(pulumi.ComponentResource):
             datastore_id=args.datastore_id,
             node_name=args.node_name,
             url=self.iso_url,
-            file_name=self.iso_url.apply(
-                lambda url: f"talos-{args.talos_version}-{url.split('/')[-4]}-{args.platform}-{args.arch}.iso"
+            file_name=self.schematic.id.apply(
+                lambda s_id: f"talos-{args.talos_version}-{s_id[:12]}-{args.platform}-{args.arch}.iso"
             ),
             overwrite=True,
             opts=pulumi.ResourceOptions(

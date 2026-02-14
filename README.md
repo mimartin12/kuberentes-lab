@@ -19,6 +19,37 @@ pveum user add terraform-prov@pve --password <password>
 pveum aclmod / -user terraform-prov@pve -role TerraformProv
 ```
 
+### PCIe Device Passthrough (Optional)
+
+To pass PCIe devices (like GPUs) to VMs:
+
+1. **Enable IOMMU** on your Proxmox host (required for PCIe passthrough)
+
+2. **Create a PCI device mapping** (as root):
+   ```bash
+   # Example: GPU mapping
+   pvesh create /cluster/mapping/pci --id nvidiaGPU --map "node=pve01,path=0000:01:00.0,path=0000:01:00.1"
+   ```
+
+3. **Grant mapping permissions** to the terraform-prov user:
+   ```bash
+   pveum acl modify /mapping/pci/nvidiaGPU -user terraform-prov@pve -role PVEMappingUser
+   ```
+
+4. **Configure nodes** with the mapping name in `Pulumi.dev.yaml`:
+   ```yaml
+   kubernets-lab:nodes:
+     - name: talos-worker-01
+       ip: "192.168.1.162"
+       role: worker
+       cpu: 2
+       memory: 4096
+       pcie_devices:
+         - "nvidiaGPU"
+   ```
+
+Note: The Talos image must include the necessary drivers. NVIDIA GPU support is included by default via the image factory extensions.
+
 ## Pulumi Configuration
 
 ```bash
@@ -43,6 +74,9 @@ kubernets-lab:nodes:
     role: controlplane
     cpu: 2
     memory: 3072
+    machine: q35  # Optional, defaults to q35 (required for PCIe passthrough)
+    pcie_devices:  # Optional, for PCIe passthrough (requires mapping setup)
+      - "nvidiaGPU"
 ```
 
 **External nodes:**

@@ -3,7 +3,14 @@ import pulumi_proxmoxve as proxmoxve
 import pulumi_kubernetes as kubernetes
 import yaml
 from pulumi_kubernetes.helm.v3 import Release, ReleaseArgs, RepositoryOptsArgs
-from components import TalosImageFactory, TalosImageFactoryArgs, TalosCluster, TalosClusterArgs
+from components import (
+    TalosImageFactory,
+    TalosImageFactoryArgs,
+    TalosCluster,
+    TalosClusterArgs,
+    TalosUpgrade,
+    TalosUpgradeArgs,
+)
 
 # Load configuration
 config = pulumi.Config()
@@ -15,6 +22,10 @@ nodes = config.require_object("nodes")
 cluster_endpoint_ip = config.get("cluster_endpoint_ip") or nodes[0]["ip"]
 use_cilium = config.get_bool("use_cilium") or False
 cilium_version = config.get("cilium_version") or "1.16.0"
+force_upgrade = config.get_bool("force_upgrade") or False
+manage_cluster = (
+    config.get_bool("manage_cluster") or False
+)  # Set to true only for new clusters
 
 # Load ArgoCD version from the ArgoCD application manifest
 with open("../argocd/applications/argocd.yaml", "r") as f:
@@ -30,78 +41,132 @@ proxmox_provider = proxmoxve.Provider(
     insecure=True,
 )
 
-# Create Talos image factory (ISO and installer image)
-image_factory = TalosImageFactory(
-    "talos-image",
+# Create Talos image factories for different node types
+image_factory_default = TalosImageFactory(
+    "talos-image-default",
     TalosImageFactoryArgs(
         talos_version=talos_version,
         platform="nocloud",
-        extensions=["siderolabs/qemu-guest-agent", "siderolabs/iscsi-tools"],
+        extensions=[
+            "siderolabs/qemu-guest-agent",
+            "siderolabs/iscsi-tools",
+        ],
         node_name="pve01",
         datastore_id="local",
         proxmox_provider=proxmox_provider,
     ),
 )
 
-# Create Talos cluster with all nodes
-cluster = TalosCluster(
-    cluster_name,
-    TalosClusterArgs(
-        cluster_name=cluster_name,
-        nodes=nodes,
-        gateway=gateway,
-        talos_installer_image=image_factory.installer_image,
-        talos_iso_file_id=image_factory.iso_file.id,
+image_factory_gpu = TalosImageFactory(
+    "talos-image-gpu",
+    TalosImageFactoryArgs(
         talos_version=talos_version,
-        kubernetes_version=kubernetes_version,
-        cluster_endpoint_ip=cluster_endpoint_ip,
-        use_cilium=use_cilium,
-        cilium_version=cilium_version,
+        platform="nocloud",
+        extensions=[
+            "siderolabs/qemu-guest-agent",
+            "siderolabs/iscsi-tools",
+            "siderolabs/nvidia-open-gpu-kernel-modules-lts",
+            "siderolabs/nvidia-container-toolkit",
+        ],
+        node_name="pve01",
+        datastore_id="local",
         proxmox_provider=proxmox_provider,
     ),
 )
 
-# Install ArgoCD
-argocd_namespace = kubernetes.core.v1.Namespace(
-    "argocd-namespace",
-    metadata={"name": "argocd"},
-    opts=pulumi.ResourceOptions(provider=cluster.k8s_provider),
-)
+image_factories = {
+    "default": image_factory_default,
+    "gpu": image_factory_gpu,
+}
 
-argocd = Release(
-    "argocd",
-    ReleaseArgs(
-        name="argocd",
-        chart="argo-cd",
-        repository_opts=RepositoryOptsArgs(
-            repo="https://argoproj.github.io/argo-helm",
+# Only create cluster resources if managing a new cluster
+# For existing clusters, set manage_cluster: false in Pulumi.dev.yaml
+cluster = None
+if manage_cluster:
+    # Create Talos cluster with all nodes
+    cluster = TalosCluster(
+        cluster_name,
+        TalosClusterArgs(
+            cluster_name=cluster_name,
+            nodes=nodes,
+            gateway=gateway,
+            image_factories=image_factories,
+            talos_version=talos_version,
+            kubernetes_version=kubernetes_version,
+            cluster_endpoint_ip=cluster_endpoint_ip,
+            use_cilium=use_cilium,
+            cilium_version=cilium_version,
+            proxmox_provider=proxmox_provider,
         ),
-        version=argocd_version,
-        value_yaml_files=[
-            pulumi.FileAsset("../argocd/applications/values/argocd.yaml")
-        ],
-        namespace="argocd",
-    ),
-    opts=pulumi.ResourceOptions(
-        provider=cluster.k8s_provider,
-        depends_on=[argocd_namespace],
-    ),
-)
+    )
 
-argocd_applications = kubernetes.yaml.ConfigFile(
-    "argocd-applications",
-    file="../argocd/all-the-apps.yaml",
-    opts=pulumi.ResourceOptions(
-        provider=cluster.k8s_provider,
-        depends_on=[argocd],
+    # Install ArgoCD
+    argocd_namespace = kubernetes.core.v1.Namespace(
+        "argocd-namespace",
+        metadata={"name": "argocd"},
+        opts=pulumi.ResourceOptions(provider=cluster.k8s_provider),
+    )
+
+    argocd = Release(
+        "argocd",
+        ReleaseArgs(
+            name="argocd",
+            chart="argo-cd",
+            repository_opts=RepositoryOptsArgs(
+                repo="https://argoproj.github.io/argo-helm",
+            ),
+            version=argocd_version,
+            value_yaml_files=[
+                pulumi.FileAsset("../argocd/applications/values/argocd.yaml")
+            ],
+            namespace="argocd",
+        ),
+        opts=pulumi.ResourceOptions(
+            provider=cluster.k8s_provider,
+            depends_on=[argocd_namespace],
+        ),
+    )
+
+    argocd_applications = kubernetes.yaml.ConfigFile(
+        "argocd-applications",
+        file="../argocd/all-the-apps.yaml",
+        opts=pulumi.ResourceOptions(
+            provider=cluster.k8s_provider,
+            depends_on=[argocd],
+        ),
+    )
+
+# Upgrade Talos nodes when version changes (masters first, then workers)
+# This runs talosctl upgrade commands directly, no ConfigurationApply needed
+upgrade = TalosUpgrade(
+    "talos-upgrade",
+    TalosUpgradeArgs(
+        nodes=nodes,
+        image_factories=image_factories,
+        force=force_upgrade,
     ),
 )
 
 # Exports
-pulumi.export("kubeconfig", cluster.kubeconfig_raw)
-pulumi.export("talosconfig", cluster.talosconfig_yaml)
-pulumi.export("talos_image_url", image_factory.iso_url)
-pulumi.export("talos_installer_image", image_factory.installer_image)
+pulumi.export(
+    "talos_images",
+    {
+        "default": {
+            "iso_url": image_factory_default.iso_url,
+            "installer_image": image_factory_default.installer_image,
+        },
+        "gpu": {
+            "iso_url": image_factory_gpu.iso_url,
+            "installer_image": image_factory_gpu.installer_image,
+        },
+    },
+)
 pulumi.export("talos_version", talos_version)
-pulumi.export("cluster_endpoint", f"https://{cluster_endpoint_ip}:6443")
-pulumi.export("controlplane_ips", cluster.controlplane_ips)
+
+# Only export cluster resources if managing them
+if manage_cluster and cluster:
+    pulumi.export("kubeconfig", pulumi.Output.secret(cluster.kubeconfig_raw))
+    pulumi.export("talosconfig", pulumi.Output.secret(cluster.talosconfig_yaml))
+else:
+    pulumi.export("kubeconfig", "[managed externally - use talosctl kubeconfig]")
+    pulumi.export("talosconfig", "[managed externally - use pulumi/talosconfig.yaml]")

@@ -1,0 +1,23 @@
+apiVersion: storage.loft.sh/v1
+kind: VirtualClusterInstance
+metadata:
+name: vcluster01
+namespace: loft-vcluster-01
+annotations:
+  argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+clusterRef:
+  cluster: "Local Cluster"
+external: false
+owner:
+  user: admin
+template:
+  helmRelease:
+    chart:
+      version: 0.31.0
+    values: |
+      controlPlane:
+        backingStore:
+          etcd:
+            deploy:
+              enabled: true

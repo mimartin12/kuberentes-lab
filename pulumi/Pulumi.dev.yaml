@@ -3,11 +3,12 @@ config:
   kubernets-lab:proxmox_username: terraform-prov@pve
   kubernets-lab:proxmox_password:
     secure: AAABADYp+8KAN9ESX4uVG6jfEKtBD7OpasFhqqnsqACQPYNpv22T8dGAz439KA==
-  kubernets-lab:talos_version: "v1.12.3"
+  kubernets-lab:talos_version: "v1.12.4"
   kubernets-lab:kubernetes_version: "1.35.0"
   kubernets-lab:cluster_name: "talos-cluster"
   kubernets-lab:gateway: "192.168.1.1"
   kubernets-lab:cluster_endpoint_ip: "192.168.1.160"  # Optional, defaults to first controlplane
+  kubernets-lab:force_upgrade: true 
   # Cilium CNI
   kubernets-lab:use_cilium: true
   kubernets-lab:cilium_version: "1.16.0"

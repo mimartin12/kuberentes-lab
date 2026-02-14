@@ -143,13 +143,9 @@ def _indent(text: str, spaces: int) -> str:
 
 
 def create_talos_secrets(name: str, talos_version: str = None):
-    # Include version in resource name to force regeneration when version changes
-    resource_name = (
-        f"{name}-secrets-{talos_version.replace('.', '-')}"
-        if talos_version
-        else f"{name}-secrets"
-    )
-    return talos.machine.Secrets(resource_name, talos_version=talos_version)
+    # Secrets should remain stable across updates - do NOT include version in name
+    # The talos_version parameter is used for the actual secret generation but not the resource name
+    return talos.machine.Secrets(f"{name}-secrets", talos_version=talos_version)
 
 
 def apply_talos_config(
@@ -168,9 +164,12 @@ def apply_talos_config(
     use_cilium: bool = False,
     cilium_version: str = "1.16.0",
     kubernetes_version: str = None,
+    enable_gpu: bool = False,
     bootstrap: bool = False,
+    config_dependencies: list = None,
 ):
     nameservers = nameservers or ["192.168.1.1"]
+    config_dependencies = config_dependencies or []
 
     # Build machine config patch
     machine_patch = {
@@ -199,6 +198,34 @@ def apply_talos_config(
             },
         }
     }
+
+    # Add NVIDIA GPU kernel modules and runtime configuration if GPU is enabled
+    if enable_gpu:
+        # Add GPU node labels
+        machine_patch["machine"]["nodeLabels"] = {
+            "nvidia.com/gpu.present": "true",
+            "nvidia.com/mps.capable": "true",
+            "feature.node.kubernetes.io/pci-10de.present": "true",
+        }
+
+        machine_patch["machine"]["kernel"] = {
+            "modules": [
+                {"name": "nvidia"},
+                {"name": "nvidia_uvm"},
+                {"name": "nvidia_drm"},
+                {"name": "nvidia_modeset"},
+            ]
+        }
+        machine_patch["machine"]["sysctls"] = {"net.core.bpf_jit_harden": "1"}
+        # Configure containerd runtime for NVIDIA
+        machine_patch["machine"]["files"] = [
+            {
+                "content": '[plugins]\n  [plugins."io.containerd.grpc.v1.cri"]\n    enable_unprivileged_ports = true\n    enable_unprivileged_icmp = true\n  [plugins."io.containerd.grpc.v1.cri".containerd]\n    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]\n      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia]\n        privileged_without_host_devices = false\n        runtime_engine = ""\n        runtime_root = ""\n        runtime_type = "io.containerd.runc.v2"\n        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia.options]\n          BinaryName = "/usr/local/bin/nvidia-container-runtime"\n',
+                "permissions": 0o644,
+                "path": "/etc/cri/conf.d/20-customization.part",
+                "op": "create",
+            }
+        ]
 
     # For control plane nodes with Cilium: disable default CNI, kube-proxy, and inject inline manifests
     if use_cilium and role == "controlplane":
@@ -264,21 +291,27 @@ def apply_talos_config(
         kubernetes_version=kubernetes_version,
     )
 
+    pulumi.log.info(f"Applying Talos configuration to {name} ({role}) at {node_ip}")
+
+    # Build dependency list: VM (if exists) + any previous node configs
+    depends_on_resources = (config_dependencies + [vm]) if vm else config_dependencies
+
     config_apply = talos.machine.ConfigurationApply(
         f"{name}-config-apply",
         client_configuration=secrets.client_configuration,
         machine_configuration_input=machine_config.machine_configuration,
         node=node_ip,
-        endpoint=(
-            node_ip if vm is None else None
-        ),  # For external nodes, use explicit endpoint
+        endpoint=node_ip,
         apply_mode="auto",
-        opts=pulumi.ResourceOptions(depends_on=[vm] if vm else []),
+        opts=pulumi.ResourceOptions(
+            depends_on=depends_on_resources if depends_on_resources else None
+        ),
     )
 
     result = {"config_apply": config_apply}
 
     if role == "controlplane" and bootstrap:
+        pulumi.log.info(f"Bootstrapping Kubernetes cluster on {name}")
         result["bootstrap"] = talos.machine.Bootstrap(
             f"{name}-bootstrap",
             client_configuration=secrets.client_configuration,
@@ -287,6 +320,7 @@ def apply_talos_config(
             opts=pulumi.ResourceOptions(depends_on=[config_apply]),
         )
 
+        pulumi.log.info(f"Generating kubeconfig from {name}")
         result["kubeconfig"] = talos.cluster.Kubeconfig(
             f"{name}-kubeconfig",
             client_configuration=secrets.client_configuration,

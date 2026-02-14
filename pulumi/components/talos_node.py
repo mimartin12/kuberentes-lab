@@ -1,4 +1,5 @@
 """TalosNode Pulumi Component"""
+
 import pulumi
 import pulumi_proxmoxve as proxmoxve
 import pulumiverse_talos as talos
@@ -23,11 +24,14 @@ class TalosNodeArgs:
         cpu: int = 2,
         memory: int = 2048,
         install_disk: str = "/dev/sda",
+        machine: str = "q35",
+        pcie_devices: list = None,
         proxmox_provider: proxmoxve.Provider = None,
         use_cilium: bool = False,
         cilium_version: str = "1.16.0",
         kubernetes_version: str = None,
         is_bootstrap: bool = False,
+        config_dependencies: list = None,
     ):
         self.name = name
         self.ip = ip
@@ -41,12 +45,15 @@ class TalosNodeArgs:
         self.node_type = node_type
         self.cpu = cpu
         self.memory = memory
+        self.machine = machine
+        self.pcie_devices = pcie_devices or []
         self.install_disk = install_disk
         self.proxmox_provider = proxmox_provider
         self.use_cilium = use_cilium
         self.cilium_version = cilium_version
         self.kubernetes_version = kubernetes_version
         self.is_bootstrap = is_bootstrap
+        self.config_dependencies = config_dependencies or []
 
 
 class TalosNode(pulumi.ComponentResource):
@@ -93,7 +100,9 @@ class TalosNode(pulumi.ComponentResource):
             kubernetes_version=args.kubernetes_version,
             install_disk=args.install_disk,
             install_image=args.talos_installer_image,
+            enable_gpu=len(args.pcie_devices) > 0,
             bootstrap=args.is_bootstrap,
+            config_dependencies=args.config_dependencies,
         )
 
         self.config_apply = config_result["config_apply"]
@@ -120,6 +129,20 @@ class TalosNode(pulumi.ComponentResource):
 
     def _create_vm(self, args: TalosNodeArgs) -> proxmoxve.vm.VirtualMachine:
         """Create a Proxmox VM for the Talos node"""
+        # Prepare PCIe devices if provided
+        hostpcis = None
+        if args.pcie_devices:
+            hostpcis = [
+                proxmoxve.vm.VirtualMachineHostpciArgs(
+                    device=f"hostpci{idx}",
+                    mapping=device_mapping,
+                    pcie=True,
+                    rombar=True,  # Enable ROM BAR for GPU initialization
+                    xvga=False,  # Don't use as primary VGA to avoid conflicts
+                )
+                for idx, device_mapping in enumerate(args.pcie_devices)
+            ]
+
         return proxmoxve.vm.VirtualMachine(
             f"{args.name}-vm",
             node_name="pve01",
@@ -133,6 +156,7 @@ class TalosNode(pulumi.ComponentResource):
                 file_format="raw",
                 type="4m",
             ),
+            machine=args.machine,
             cpu=proxmoxve.vm.VirtualMachineCpuArgs(
                 cores=args.cpu,
                 sockets=1,
@@ -173,6 +197,7 @@ class TalosNode(pulumi.ComponentResource):
                 interface="ide2",
             ),
             boot_orders=["scsi0"],
+            hostpcis=hostpcis,
             opts=pulumi.ResourceOptions(
                 parent=self,
                 provider=args.proxmox_provider,

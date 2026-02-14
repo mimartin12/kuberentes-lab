@@ -21,6 +21,10 @@ spec:
     - repoURL: https://github.com/mimartin12/kuberentes-lab
       targetRevision: HEAD
       ref: values
+    # Additional configuration, such as vcluster configuration
+    - repoURL: https://github.com/mimartin12/kuberentes-lab
+      targetRevision: HEAD
+      path: argocd/applications/manifests/vcluster-platform
   project: default
   syncPolicy:
     automated:
