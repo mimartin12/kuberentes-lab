@@ -15,6 +15,7 @@ spec:
     - name: "*"
   members:
     - user: admin
+      clusterRole: loft-management-project-admin
 
 ---
 
