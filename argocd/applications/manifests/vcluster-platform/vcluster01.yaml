@@ -12,14 +12,9 @@ spec:
   allowedClusters:
     - name: "*"
   allowedTemplates:
-    - kind: VirtualClusterTemplate
-      group: storage.loft.sh
-      name: "*"
+    - name: "*"
   members:
-    - kind: Team
-      group: storage.loft.sh
-      name: dev-team
-      clusterRole: loft-management-project-admin
+    - user: admin
 
 ---
 
