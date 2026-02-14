@@ -2,7 +2,7 @@ apiVersion: storage.loft.sh/v1
 kind: VirtualClusterInstance
 metadata:
 name: vcluster01
-namespace: loft-vcluster-01
+namespace: loft-default-s-loft-vcluster-01
 annotations:
   argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
