@@ -1,13 +1,13 @@
 apiVersion: storage.loft.sh/v1
 kind: VirtualClusterInstance
 metadata:
-name: vcluster01
-namespace: loft-default-s-loft-vcluster-01
+name: dev-vcluster
+namespace: loft-p-team-alpha
 annotations:
   argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
 clusterRef:
-  cluster: "Local Cluster"
+  cluster: my-host-cluster
 external: false
 owner:
   user: admin
