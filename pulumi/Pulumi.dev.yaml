@@ -37,3 +37,8 @@ config:
       role: worker
       cpu: 2
       memory: 4096
+    # External Nodes
+    - name: talos-worker-micro-01
+      ip: "192.168.1.167"
+      role: worker
+      type: external

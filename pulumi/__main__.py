@@ -23,9 +23,6 @@ cluster_endpoint_ip = config.get("cluster_endpoint_ip") or nodes[0]["ip"]
 use_cilium = config.get_bool("use_cilium") or False
 cilium_version = config.get("cilium_version") or "1.16.0"
 force_upgrade = config.get_bool("force_upgrade") or False
-manage_cluster = (
-    config.get_bool("manage_cluster") or False
-)  # Set to true only for new clusters
 
 # Load ArgoCD version from the ArgoCD application manifest
 with open("../argocd/applications/argocd.yaml", "r") as f:
@@ -48,7 +45,6 @@ image_factory_default = TalosImageFactory(
         talos_version=talos_version,
         platform="nocloud",
         extensions=[
-            "siderolabs/qemu-guest-agent",
             "siderolabs/iscsi-tools",
         ],
         node_name="pve01",
@@ -63,7 +59,6 @@ image_factory_gpu = TalosImageFactory(
         talos_version=talos_version,
         platform="nocloud",
         extensions=[
-            "siderolabs/qemu-guest-agent",
             "siderolabs/iscsi-tools",
             "siderolabs/nvidia-open-gpu-kernel-modules-lts",
             "siderolabs/nvidia-container-toolkit",
@@ -79,62 +74,58 @@ image_factories = {
     "gpu": image_factory_gpu,
 }
 
-# Only create cluster resources if managing a new cluster
-# For existing clusters, set manage_cluster: false in Pulumi.dev.yaml
-cluster = None
-if manage_cluster:
-    # Create Talos cluster with all nodes
-    cluster = TalosCluster(
-        cluster_name,
-        TalosClusterArgs(
-            cluster_name=cluster_name,
-            nodes=nodes,
-            gateway=gateway,
-            image_factories=image_factories,
-            talos_version=talos_version,
-            kubernetes_version=kubernetes_version,
-            cluster_endpoint_ip=cluster_endpoint_ip,
-            use_cilium=use_cilium,
-            cilium_version=cilium_version,
-            proxmox_provider=proxmox_provider,
-        ),
-    )
+# Create Talos cluster with all nodes
+cluster = TalosCluster(
+    cluster_name,
+    TalosClusterArgs(
+        cluster_name=cluster_name,
+        nodes=nodes,
+        gateway=gateway,
+        image_factories=image_factories,
+        talos_version=talos_version,
+        kubernetes_version=kubernetes_version,
+        cluster_endpoint_ip=cluster_endpoint_ip,
+        use_cilium=use_cilium,
+        cilium_version=cilium_version,
+        proxmox_provider=proxmox_provider,
+    ),
+)
 
-    # Install ArgoCD
-    argocd_namespace = kubernetes.core.v1.Namespace(
-        "argocd-namespace",
-        metadata={"name": "argocd"},
-        opts=pulumi.ResourceOptions(provider=cluster.k8s_provider),
-    )
+# Install ArgoCD
+argocd_namespace = kubernetes.core.v1.Namespace(
+    "argocd-namespace",
+    metadata={"name": "argocd"},
+    opts=pulumi.ResourceOptions(provider=cluster.k8s_provider),
+)
 
-    argocd = Release(
-        "argocd",
-        ReleaseArgs(
-            name="argocd",
-            chart="argo-cd",
-            repository_opts=RepositoryOptsArgs(
-                repo="https://argoproj.github.io/argo-helm",
-            ),
-            version=argocd_version,
-            value_yaml_files=[
-                pulumi.FileAsset("../argocd/applications/values/argocd.yaml")
-            ],
-            namespace="argocd",
+argocd = Release(
+    "argocd",
+    ReleaseArgs(
+        name="argocd",
+        chart="argo-cd",
+        repository_opts=RepositoryOptsArgs(
+            repo="https://argoproj.github.io/argo-helm",
         ),
-        opts=pulumi.ResourceOptions(
-            provider=cluster.k8s_provider,
-            depends_on=[argocd_namespace],
-        ),
-    )
+        version=argocd_version,
+        value_yaml_files=[
+            pulumi.FileAsset("../argocd/applications/values/argocd.yaml")
+        ],
+        namespace="argocd",
+    ),
+    opts=pulumi.ResourceOptions(
+        provider=cluster.k8s_provider,
+        depends_on=[argocd_namespace],
+    ),
+)
 
-    argocd_applications = kubernetes.yaml.ConfigFile(
-        "argocd-applications",
-        file="../argocd/all-the-apps.yaml",
-        opts=pulumi.ResourceOptions(
-            provider=cluster.k8s_provider,
-            depends_on=[argocd],
-        ),
-    )
+argocd_applications = kubernetes.yaml.ConfigFile(
+    "argocd-applications",
+    file="../argocd/all-the-apps.yaml",
+    opts=pulumi.ResourceOptions(
+        provider=cluster.k8s_provider,
+        depends_on=[argocd],
+    ),
+)
 
 # Upgrade Talos nodes when version changes (masters first, then workers)
 # This runs talosctl upgrade commands directly, no ConfigurationApply needed
@@ -163,10 +154,5 @@ pulumi.export(
 )
 pulumi.export("talos_version", talos_version)
 
-# Only export cluster resources if managing them
-if manage_cluster and cluster:
-    pulumi.export("kubeconfig", pulumi.Output.secret(cluster.kubeconfig_raw))
-    pulumi.export("talosconfig", pulumi.Output.secret(cluster.talosconfig_yaml))
-else:
-    pulumi.export("kubeconfig", "[managed externally - use talosctl kubeconfig]")
-    pulumi.export("talosconfig", "[managed externally - use pulumi/talosconfig.yaml]")
+pulumi.export("kubeconfig", pulumi.Output.secret(cluster.kubeconfig_raw))
+pulumi.export("talosconfig", pulumi.Output.secret(cluster.talosconfig_yaml))
