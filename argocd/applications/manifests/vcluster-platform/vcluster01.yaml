@@ -1,0 +1,62 @@
+---
+apiVersion: management.loft.sh/v1
+kind: Team
+metadata:
+  name: acme-team
+spec:
+  displayName: acme-team
+  owner:
+    user: admin
+  access:
+    - verbs:
+        - "*"
+      subresources:
+        - "*"
+      users:
+        - admin
+    - name: vcluster-platform-access
+      verbs:
+        - get
+        - bind
+      subresources:
+        - clusters
+      teams:
+        - acme-team
+
+---
+kind: Project
+apiVersion: management.loft.sh/v1
+metadata:
+  name: acme-team-project
+spec:
+  displayName: acme-team-project
+  owner:
+    user: admin
+  quotas: {}
+  allowedClusters:
+    - name: "*"
+  allowedTemplates:
+    - kind: VirtualClusterTemplate
+      group: storage.loft.sh
+      name: "*"
+    - kind: SpaceTemplate
+      group: storage.loft.sh
+      name: "*"
+  members:
+    - kind: Team
+      group: storage.loft.sh
+      name: acme-team
+      clusterRole: loft-management-project-admin
+  access:
+    - name: vcluster-platform-admin-access
+      verbs:
+        - get
+        - update
+        - patch
+        - delete
+      subresources:
+        - "*"
+      users:
+        - admin
+      teams:
+        - acme-team
