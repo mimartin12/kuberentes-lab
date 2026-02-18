@@ -62,27 +62,23 @@ spec:
         - acme-team
 
 ---
-
-apiVersion: storage.loft.sh/v1
-kind: VirtualClusterInstance
+apiVersion: management.loft.sh/v1
+kind: Cluster
 metadata:
-name: dev-vcluster
-namespace: loft-p-acme-team-project
+name: loft-cluster
 annotations:
   argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
-clusterRef:
-  cluster: loft-cluster
-external: false
+displayName: "loft-cluster"
 owner:
   user: admin
-template:
-  helmRelease:
-    chart:
-      version: 0.31.0
-    values: |
-      controlPlane:
-        backingStore:
-          etcd:
-            deploy:
-              enabled: true
+config:
+  secretName: "loft-cluster-config-loft-cluster"
+  secretNamespace: "vcluster-platform"
+access:
+  - subresources:
+      - "*"
+    users:
+      - admin
+    verbs:
+      - "*"

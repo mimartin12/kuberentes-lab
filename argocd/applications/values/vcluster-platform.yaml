@@ -18,7 +18,7 @@ ingress:
     secretName: vcluster-platform-tls
 
 audit:
-  enableSideCar: true
+  enableSideCar: false
   level: 1
 
 config:
