@@ -63,7 +63,7 @@ spec:
 
 ---
 
-apiVersion: storage.loft.sh/v1
+apiVersion: management.loft.sh/v1
 kind: VirtualClusterInstance
 metadata:
 name: dev-vcluster
