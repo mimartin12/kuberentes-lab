@@ -63,8 +63,8 @@ spec:
 
 ---
 
-apiVersion: management.loft.sh/v1
-kind: VirtualClusterInstance
+apiVersion: storage.loft.sh/v1
+kind: VirtualClusterInstances
 metadata:
 name: dev-vcluster
 namespace: loft-p-team-alpha
