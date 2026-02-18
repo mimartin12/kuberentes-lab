@@ -69,16 +69,16 @@ name: loft-cluster
 annotations:
   argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
-displayName: "loft-cluster"
-owner:
-  user: admin
-config:
-  secretName: "loft-cluster-config-loft-cluster"
-  secretNamespace: "vcluster-platform"
-access:
-  - subresources:
-      - "*"
-    users:
-      - admin
-    verbs:
-      - "*"
+  displayName: "loft-cluster"
+  owner:
+    user: admin
+  config:
+    secretName: "loft-cluster-config-loft-cluster"
+    secretNamespace: "vcluster-platform"
+  access:
+    - subresources:
+        - "*"
+      users:
+        - admin
+      verbs:
+        - "*"
