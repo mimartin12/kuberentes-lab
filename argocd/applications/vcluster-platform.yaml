@@ -26,9 +26,21 @@ spec:
       targetRevision: HEAD
       path: argocd/applications/manifests/vcluster-platform
   project: default
+  ignoreDifferences:
+  # Ignore status for all Platform CRDs
+  - group: management.loft.sh
+    kind: "*"
+    jsonPointers:
+      - /status
+  # Ignore controller-managed fields
+  - group: management.loft.sh
+    kind: "*"
+    managedFieldsManagers:
+      - loft
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
