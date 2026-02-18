@@ -65,9 +65,9 @@ spec:
 apiVersion: management.loft.sh/v1
 kind: Cluster
 metadata:
-name: loft-cluster
-annotations:
-  argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+  name: loft-cluster
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   displayName: "loft-cluster"
   owner:
