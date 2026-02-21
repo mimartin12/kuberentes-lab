@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: octoprint
+  namespace: argocd
+  labels:
+    name: octoprint
+    stage: application
+spec:
+  project: default
+  sources:
+  - repoURL: https://github.com/mimartin12/kuberentes-lab
+    targetRevision: HEAD
+    path: argocd/applications/manifests/octoprint
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: octoprint
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
