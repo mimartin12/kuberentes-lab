@@ -24,3 +24,10 @@ spec:
           requests:
             cpu: "250m"
             memory: "256Mi"
+        volumeMounts:
+          - name: octoprint-pvc
+            mountPath: /octoprint
+      volumes:
+        - name: octoprint-pvc
+          persistentVolumeClaim:
+            claimName: octoprint-pvc

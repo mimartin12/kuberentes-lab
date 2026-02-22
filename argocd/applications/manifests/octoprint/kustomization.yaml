@@ -5,3 +5,4 @@ namespace: octoprint
 resources:
   - deployment.yaml
   - service.yaml
+  - pvc.yaml
