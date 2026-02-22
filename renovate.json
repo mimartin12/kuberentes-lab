@@ -5,7 +5,8 @@
   ],
   "enabledManagers": [
     "argocd",
-    "pep621"
+    "pep621",
+    "dockerfile"
   ],
   "argocd": {
     "managerFilePatterns": [
