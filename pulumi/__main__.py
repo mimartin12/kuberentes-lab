@@ -69,9 +69,25 @@ image_factory_gpu = TalosImageFactory(
     ),
 )
 
+image_factory_no_qemu = TalosImageFactory(
+    "talos-image-no-qemu",
+    TalosImageFactoryArgs(
+        talos_version=talos_version,
+        platform="nocloud",
+        extensions=[
+            "siderolabs/iscsi-tools",
+        ],
+        node_name="pve01",
+        datastore_id="local",
+        proxmox_provider=proxmox_provider,
+        upload_to_proxmox=False,
+    ),
+)
+
 image_factories = {
     "default": image_factory_default,
     "gpu": image_factory_gpu,
+    "no-qemu": image_factory_no_qemu,
 }
 
 # Create Talos cluster with all nodes
@@ -149,6 +165,10 @@ pulumi.export(
         "gpu": {
             "iso_url": image_factory_gpu.iso_url,
             "installer_image": image_factory_gpu.installer_image,
+        },
+        "no-qemu": {
+            "iso_url": image_factory_no_qemu.iso_url,
+            "installer_image": image_factory_no_qemu.installer_image,
         },
     },
 )

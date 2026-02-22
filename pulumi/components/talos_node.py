@@ -26,6 +26,8 @@ class TalosNodeArgs:
         install_disk: str = "/dev/sda",
         machine: str = "q35",
         pcie_devices: list = None,
+        node_labels: dict = None,
+        node_taints: list = None,
         proxmox_provider: proxmoxve.Provider = None,
         use_cilium: bool = False,
         cilium_version: str = "1.16.0",
@@ -47,6 +49,8 @@ class TalosNodeArgs:
         self.memory = memory
         self.machine = machine
         self.pcie_devices = pcie_devices or []
+        self.node_labels = node_labels or {}
+        self.node_taints = node_taints or []
         self.install_disk = install_disk
         self.proxmox_provider = proxmox_provider
         self.use_cilium = use_cilium
@@ -95,12 +99,15 @@ class TalosNode(pulumi.ComponentResource):
             role=args.role,
             vm=self.vm,
             gateway=args.gateway,
+            node_type=args.node_type,
             use_cilium=args.use_cilium,
             cilium_version=args.cilium_version,
             kubernetes_version=args.kubernetes_version,
             install_disk=args.install_disk,
             install_image=args.talos_installer_image,
             enable_gpu=len(args.pcie_devices) > 0,
+            node_labels=args.node_labels,
+            node_taints=args.node_taints,
             bootstrap=args.is_bootstrap,
             config_dependencies=args.config_dependencies,
         )

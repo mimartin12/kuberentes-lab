@@ -42,3 +42,8 @@ config:
       ip: "192.168.1.167"
       role: worker
       type: external
+      install_disk: "/dev/mmcblk0"
+      talosImage: no-qemu
+      labels:
+        node.kubernetes.io/instance-type: "micro"
+        node.kubernetes.io/zone: "3d-printer"

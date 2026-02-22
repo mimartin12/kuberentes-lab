@@ -166,6 +166,9 @@ def apply_talos_config(
     kubernetes_version: str = None,
     enable_gpu: bool = False,
     bootstrap: bool = False,
+    node_labels: dict = None,
+    node_taints: list = None,
+    node_type: str = "proxmox",
     config_dependencies: list = None,
 ):
     nameservers = nameservers or ["192.168.1.1"]
@@ -202,11 +205,14 @@ def apply_talos_config(
     # Add NVIDIA GPU kernel modules and runtime configuration if GPU is enabled
     if enable_gpu:
         # Add GPU node labels
-        machine_patch["machine"]["nodeLabels"] = {
-            "nvidia.com/gpu.present": "true",
-            "nvidia.com/mps.capable": "true",
-            "feature.node.kubernetes.io/pci-10de.present": "true",
-        }
+        machine_patch["machine"].setdefault("nodeLabels", {})
+        machine_patch["machine"]["nodeLabels"].update(
+            {
+                "nvidia.com/gpu.present": "true",
+                "nvidia.com/mps.capable": "true",
+                "feature.node.kubernetes.io/pci-10de.present": "true",
+            }
+        )
 
         machine_patch["machine"]["kernel"] = {
             "modules": [
@@ -249,6 +255,16 @@ def apply_talos_config(
 
     def _render_machine_patch(image: str = None) -> str:
         patch = copy.deepcopy(machine_patch)
+        # Merge user-supplied node labels and taints into the rendered patch
+        if node_labels:
+            patch["machine"].setdefault("nodeLabels", {})
+            patch["machine"]["nodeLabels"].update(node_labels)
+
+        if node_taints:
+            # Expecting list of dicts: [{"key":..., "value":..., "effect":...}, ...]
+            patch["machine"]["nodeTaints"] = node_taints
+        # Note: disabling Talos extension services requires a valid schema key.
+        # We avoid adding unknown keys here to prevent config validation failures.
         if image:
             patch["machine"]["install"]["image"] = image
         return json.dumps(patch)
