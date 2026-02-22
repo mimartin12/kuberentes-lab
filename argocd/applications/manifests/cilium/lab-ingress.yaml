@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lab
+  labels:
+    app.kubernetes.io/name: lab
+spec:
+  ingressClassName: cilium
+  rules:
+  - host: lab.idkthisisademo.lol
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/octoprint"
+        backend:
+          service:
+            name: octoprint
+            port: 
+              number: 80

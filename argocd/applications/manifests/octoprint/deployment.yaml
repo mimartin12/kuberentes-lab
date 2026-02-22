@@ -15,6 +15,11 @@ spec:
       containers:
       - name: octoprint
         image: octoprint/octoprint:1.11.7
+        env:
+          - name: PORT
+            value: "80"
+          - name: OCTOPRINT_PORT
+            value: "80"
         ports:
         - containerPort: 80
         resources:
