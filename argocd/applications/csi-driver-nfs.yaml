@@ -19,6 +19,9 @@ spec:
     - repoURL: https://github.com/mimartin12/kuberentes-lab
       targetRevision: HEAD
       ref: values
+    - repoURL: https://github.com/mimartin12/kuberentes-lab
+      targetRevision: HEAD
+      path: argocd/applications/manifests/csi-driver
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
