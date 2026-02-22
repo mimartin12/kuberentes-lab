@@ -4,6 +4,9 @@ metadata:
   name: octoprint
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: octoprint
   template:
     metadata:
       labels:
