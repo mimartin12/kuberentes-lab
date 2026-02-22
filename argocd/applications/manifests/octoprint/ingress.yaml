@@ -1,23 +1,7 @@
----
-# Octoprint service endpoint
-apiVersion: v1
-kind: Service
-metadata:
-  name: octoprint-service-endpoint
-spec:
-  type: ExternalName
-  externalName: octoprint.octoprint.svc.cluster.local
-  ports:
-    - port: 80
-      targetPort: 80
-
----
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: lab
-  labels:
-    app.kubernetes.io/name: lab
   annotations:
     cert-manager.io/cluster-issuer: "selfsigned-cluster-issuer"
 spec:
@@ -30,7 +14,7 @@ spec:
         path: "/octoprint"
         backend:
           service:
-            name: octoprint-service-endpoint
+            name: octoprint
             port: 
               number: 80
   tls:
