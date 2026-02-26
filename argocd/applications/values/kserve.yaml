@@ -1,0 +1,6 @@
+kserve:
+  controller:
+    deploymentMode: Standard
+    gateway:
+      ingressGateway:
+        className: cilium

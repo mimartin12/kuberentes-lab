@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: knative-crds
+  namespace: argocd
+  labels:
+    name: argocd
+    stage: application
+spec:
+  project: default
+  sources:
+    - repoURL: oci://ghcr.io/kserve/charts/kserve-crd
+      targetRevision: v0.16.0
+      chart: kserve-crd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kserve
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: "5s"
+        factor: 2
+        maxDuration: "1m"
