@@ -9,6 +9,11 @@
     "argocd",
     "custom.regex"
   ],
+  "argocd": {
+    "managerFilePatterns": [
+      "argocd/applications/*.yaml"
+    ]
+  },
   "customManagers": [
     {
       "customType": "regex",
