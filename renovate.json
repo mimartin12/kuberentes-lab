@@ -13,7 +13,7 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
-        "argocd/applications/.+\\.yaml"
+        "argocd/applications/*.yaml"
       ],
       "matchStrings": [
         "repoURL:\\s*oci://(?<depName>[^\\r\\n]+)\\r?\\n\\s*targetRevision:\\s*(?<currentValue>[^\\s]+)"
