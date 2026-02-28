@@ -5,7 +5,8 @@
   ],
   "enabledManagers": [
     "pep621",
-    "dockerfile"
+    "dockerfile",
+    "argocd"
   ],
   "customManagers": [
     {
