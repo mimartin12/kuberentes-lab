@@ -12,5 +12,17 @@
     "managerFilePatterns": [
       "argocd/applications/*.yaml"
     ]
-  }
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["argocd"],
+      "matchPackageNames": ["ghcr.io/kserve/charts/kserve-crd/kserve-crd"],
+      "packageName": "ghcr.io/kserve/charts/kserve-crd"
+    },
+    {
+      "matchManagers": ["argocd"],
+      "matchPackageNames": ["ghcr.io/kserve/charts/kserve/kserve"],
+      "packageName": "ghcr.io/kserve/charts/kserve"
+    }
+  ]
 }
