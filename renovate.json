@@ -1,13 +1,22 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
-  "enabledManagers": ["pep621", "dockerfile", "argocd", "custom.regex"],
+  "extends": [
+    "config:recommended"
+  ],
+  "enabledManagers": [
+    "pep621",
+    "dockerfile",
+    "argocd",
+    "custom.regex"
+  ],
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": ["argocd/applications/.+\\.yaml"],
+      "managerFilePatterns": [
+        "argocd/applications/.+\\.yaml"
+      ],
       "matchStrings": [
-        "repoURL:\\s*oci://(?<depName>[^\\n]+)\\n\\s*targetRevision:\\s*(?<currentValue>[^\\s]+)"
+        "repoURL:\\s*oci://(?<depName>[^\\r\\n]+)\\r?\\n\\s*targetRevision:\\s*(?<currentValue>[^\\s]+)"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "semver"
