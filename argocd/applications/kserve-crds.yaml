@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
   labels:
     name: argocd
-    stage: application
+    stage: ai
 spec:
   project: default
   sources:
