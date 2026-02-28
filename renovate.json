@@ -16,9 +16,13 @@
   },
   "packageRules": [
     {
-      "matchManagers": ["argocd"],
-      "matchPackagePatterns": ["^ghcr\\.io/kserve/"],
-      "enabled": false
+      "matchManagers": [
+        "argocd"
+      ],
+      "enabled": false,
+      "matchPackageNames": [
+        "/^ghcr\\.io/kserve//"
+      ]
     }
   ],
   "customManagers": [
