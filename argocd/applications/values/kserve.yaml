@@ -4,3 +4,6 @@ kserve:
     gateway:
       ingressGateway:
         className: cilium
+  servingruntime:
+    huggingfaceserver:
+      tag: latest-gpu # Run cutting edge to support Blackwell
