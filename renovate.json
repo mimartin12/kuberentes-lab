@@ -4,25 +4,18 @@
     "config:recommended"
   ],
   "enabledManagers": [
-    "argocd",
+    "regexManager",
     "pep621",
     "dockerfile"
   ],
-  "argocd": {
-    "managerFilePatterns": [
-      "argocd/applications/*.yaml"
-    ]
-  },
-  "packageRules": [
+  "regexManagers": [
     {
-      "matchManagers": ["argocd"],
-      "matchPackageNames": ["ghcr.io/kserve/charts/kserve-crd/kserve-crd"],
-      "packageName": "ghcr.io/kserve/charts/kserve-crd"
-    },
-    {
-      "matchManagers": ["argocd"],
-      "matchPackageNames": ["ghcr.io/kserve/charts/kserve/kserve"],
-      "packageName": "ghcr.io/kserve/charts/kserve"
+      "fileMatch": ["^argocd/applications/.+\\.yaml$"],
+      "matchStrings": [
+        "repoURL:\\s*oci://(?<depName>[^\\n]+)\\n\\s*targetRevision:\\s*(?<currentValue>[^\\s]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "semver"
     }
   ]
 }
