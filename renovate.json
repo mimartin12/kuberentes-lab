@@ -4,13 +4,16 @@
     "config:recommended"
   ],
   "enabledManagers": [
-    "regexManager",
+    "customManagers",
     "pep621",
     "dockerfile"
   ],
-  "regexManagers": [
+  "customManagers": [
     {
-      "fileMatch": ["^argocd/applications/.+\\.yaml$"],
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^argocd/applications/.+\\.yaml$/"
+      ],
       "matchStrings": [
         "repoURL:\\s*oci://(?<depName>[^\\n]+)\\n\\s*targetRevision:\\s*(?<currentValue>[^\\s]+)"
       ],
