@@ -6,8 +6,8 @@ metadata:
 spec:
   controller:
     type: daemonset
-    serviceAccount:
-      name: alloy
+    # serviceAccount:
+    #   name: alloy
 
   alloy:
     configMap:
