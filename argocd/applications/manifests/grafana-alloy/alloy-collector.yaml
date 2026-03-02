@@ -75,7 +75,7 @@ spec:
         discovery.kubernetes "dcgm" {
           role = "pod"
           namespaces {
-            names = ["monitoring"]
+            names = ["dcgm-exporter"]
           }
           selectors {
             role  = "pod"
