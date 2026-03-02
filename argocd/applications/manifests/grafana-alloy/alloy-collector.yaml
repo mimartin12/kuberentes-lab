@@ -2,7 +2,7 @@ apiVersion: collectors.grafana.com/v1alpha1
 kind: Alloy
 metadata:
   name: alloy
-  namespace: monitoring
+  namespace: grafana-alloy-operator
 spec:
   controller:
     type: daemonset
