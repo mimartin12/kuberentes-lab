@@ -12,6 +12,11 @@ spec:
         operator: Exists
         effect: NoSchedule
     runtimeClassName: nvidia
+    volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 2Gi
     model:
       modelFormat:
         name: huggingface
@@ -20,6 +25,9 @@ spec:
         - --served-model-name=qwen
         - --max-model-len=4096
         - --quantization=fp8
+      volumeMounts:
+        - name: dshm
+          mountPath: /dev/shm
       storageUri: "pvc://model-store-pvc/Qwen3.5-9B-Instruct"
       resources:
         limits:
