@@ -27,9 +27,14 @@ spec:
           - -c
           - |
             pip install -q huggingface_hub hf_transfer &&
-            huggingface-cli download Qwen/Qwen3-8B \
-              --local-dir /mnt/models/Qwen3-8B \
-              --exclude "*.pt"
+            python -c "
+            from huggingface_hub import snapshot_download
+            snapshot_download(
+              repo_id='Qwen/Qwen3-8B',
+              local_dir='/mnt/models/Qwen3-8B',
+              ignore_patterns=['*.pt']
+            )
+            "
         env:
           - name: HF_HUB_CACHE
             value: "/mnt/models/.cache"
