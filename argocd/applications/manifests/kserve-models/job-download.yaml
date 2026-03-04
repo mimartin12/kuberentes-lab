@@ -3,6 +3,8 @@ kind: Job
 metadata:
   name: download-qwen3-8b
   namespace: kserve-test
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
 spec:
   template:
     spec:
