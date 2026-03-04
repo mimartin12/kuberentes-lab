@@ -30,10 +30,10 @@ spec:
           mountPath: /mnt/models
         resources:
           requests:
-            memory: 256Mi
+            memory: 512Mi
             cpu: 100m
           limits:
-            memory: 512Mi
+            memory: 2Gi
             cpu: 500m
       volumes:
       - name: model-store
