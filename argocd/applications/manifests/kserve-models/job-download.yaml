@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: download-qwen3-4b
+  name: download-llama
   namespace: kserve-test
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -29,16 +29,10 @@ spec:
             pip install -q huggingface_hub hf_transfer &&
             python -c "
             from huggingface_hub import snapshot_download
-            # TODO: Switch back when KServe supports qwen3_5 arch
-            # snapshot_download(
-            #   repo_id='Qwen/Qwen3.5-4B',
-            #   local_dir='/mnt/models/Qwen3.5-4B',
-            #   ignore_patterns=['*.pt']
-            # )
             snapshot_download(
-              repo_id='Qwen/Qwen3-4B',
-              local_dir='/mnt/models/Qwen3-4B',
-              ignore_patterns=['*.pt']
+              repo_id='meta-llama/Llama-3.1-8B-Instruct',
+              local_dir='/mnt/models/Llama-3.1-8B-Instruct',
+              ignore_patterns=['*.pt', 'original/*']
             )
             "
         env:
@@ -51,8 +45,8 @@ spec:
           mountPath: /mnt/models
         resources:
           requests:
-            memory: 512Mi
-            cpu: 100m
+            memory: 1Gi
+            cpu: 200m
       volumes:
       - name: model-store
         persistentVolumeClaim:
