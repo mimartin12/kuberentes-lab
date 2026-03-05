@@ -1,7 +1,7 @@
 apiVersion: "serving.kserve.io/v1beta1"
 kind: "InferenceService"
 metadata:
-  name: "mistral"
+  name: "phi3"
   namespace: kserve-test
   annotations:
     argocd.argoproj.io/sync-wave: "2"
@@ -21,14 +21,13 @@ spec:
       modelFormat:
         name: huggingface
       args:
-        - --model_name=mistral
-        - --served-model-name=mistral
+        - --model_name=phi3
+        - --served-model-name=phi3
         - --max-model-len=4096
-        - --quantization=fp8
       volumeMounts:
         - name: dshm
           mountPath: /dev/shm
-      storageUri: "pvc://model-store-pvc/Mistral-7B-Instruct-v0.1"
+      storageUri: "pvc://model-store-pvc/Phi-3-mini-4k-instruct"
       resources:
         limits:
           cpu: "4"

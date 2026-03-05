@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: download-mistral
+  name: download-phi3
   namespace: kserve-test
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -30,8 +30,8 @@ spec:
             python -c "
             from huggingface_hub import snapshot_download
             snapshot_download(
-              repo_id='mistralai/Mistral-7B-Instruct-v0.1',
-              local_dir='/mnt/models/Mistral-7B-Instruct-v0.1',
+              repo_id='microsoft/Phi-3-mini-4k-instruct',
+              local_dir='/mnt/models/Phi-3-mini-4k-instruct',
               ignore_patterns=['*.pt', 'original/*']
             )
             "
