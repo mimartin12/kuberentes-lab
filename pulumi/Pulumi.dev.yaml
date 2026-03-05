@@ -17,17 +17,17 @@ config:
       ip: "192.168.1.160"
       role: controlplane
       cpu: 2
-      memory: 3072
+      memory: 4096
     - name: talos-master-02
       ip: "192.168.1.161"
       role: controlplane
       cpu: 2
-      memory: 3072
+      memory: 4096
     - name: talos-worker-01
       ip: "192.168.1.162"
       role: worker
       cpu: 2
-      memory: 8192
+      memory: 16384
       talosImage: gpu
       install_disk: "/dev/sda"
       disks:

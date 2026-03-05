@@ -8,7 +8,6 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-model-store
   resources:
     requests:
       storage: 50Gi

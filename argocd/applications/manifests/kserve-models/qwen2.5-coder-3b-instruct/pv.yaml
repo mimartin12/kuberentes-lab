@@ -9,7 +9,6 @@ spec:
     storage: 50Gi
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-model-store
   persistentVolumeReclaimPolicy: Retain
   local:
     path: /var/mnt/model-store
