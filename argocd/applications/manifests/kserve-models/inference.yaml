@@ -23,7 +23,7 @@ spec:
       args:
         - --model_name=phi3
         - --served-model-name=phi3
-        - --max-model-len=4096
+        - --max-model-len=8192
       volumeMounts:
         - name: dshm
           mountPath: /dev/shm
