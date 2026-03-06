@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keda
+  namespace: argocd
+  labels:
+    name: keda
+    stage: scaling
+spec:
+  project: default
+  sources:
+    - repoURL: https://kedacore.github.io/charts
+      targetRevision: 2.19.0
+      chart: keda
+      helm:
+        valueFiles:
+          - $values/argocd/applications/values/keda.yaml
+        ignoreMissingValueFiles: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keda
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: "5s"
+        factor: 2
+        maxDuration: "1m"

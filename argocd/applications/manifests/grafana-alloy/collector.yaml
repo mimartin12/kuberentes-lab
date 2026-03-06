@@ -122,3 +122,109 @@ spec:
           forward_to   = [prometheus.remote_write.vm.receiver]
           scrape_interval = "15s"
         }
+
+        // ─────────────────────────────────────────
+        // Cilium Agent Metrics
+        // ─────────────────────────────────────────
+        discovery.kubernetes "cilium_agent" {
+          role = "pod"
+          namespaces {
+            names = ["kube-system"]
+          }
+          selectors {
+            role  = "pod"
+            label = "k8s-app=cilium"
+          }
+        }
+
+        discovery.relabel "cilium_agent" {
+          targets = discovery.kubernetes.cilium_agent.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_port_number"]
+            regex         = "9962"
+            action        = "keep"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label  = "node"
+          }
+          rule {
+            target_label  = "job"
+            replacement   = "cilium-agent"
+          }
+        }
+
+        prometheus.scrape "cilium_agent" {
+          targets         = discovery.relabel.cilium_agent.output
+          metrics_path    = "/metrics"
+          scrape_interval = "15s"
+          forward_to      = [prometheus.remote_write.vm.receiver]
+        }
+
+        // ─────────────────────────────────────────
+        // Cilium Operator Metrics
+        // ─────────────────────────────────────────
+        prometheus.scrape "cilium_operator" {
+          targets = [{
+            __address__ = "cilium-operator.kube-system.svc:9963",
+          }]
+          metrics_path    = "/metrics"
+          scrape_interval = "15s"
+          forward_to      = [prometheus.remote_write.vm.receiver]
+        }
+
+        // ─────────────────────────────────────────
+        // Hubble Flow Metrics
+        // ─────────────────────────────────────────
+        discovery.kubernetes "hubble" {
+          role = "pod"
+          namespaces {
+            names = ["kube-system"]
+          }
+          selectors {
+            role  = "pod"
+            label = "k8s-app=cilium"
+          }
+        }
+
+        discovery.relabel "hubble" {
+          targets = discovery.kubernetes.hubble.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_port_number"]
+            regex         = "9965"
+            action        = "keep"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label  = "node"
+          }
+          rule {
+            target_label  = "job"
+            replacement   = "hubble"
+          }
+        }
+
+        prometheus.scrape "hubble" {
+          targets         = discovery.relabel.hubble.output
+          metrics_path    = "/metrics"
+          scrape_interval = "15s"
+          forward_to      = [prometheus.remote_write.vm.receiver]
+        }
