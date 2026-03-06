@@ -7,6 +7,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
 spec:
   predictor:
+    minReplicas: 0
+    maxReplicas: 1
     tolerations:
       - key: nvidia.com/gpu
         operator: Exists
@@ -22,7 +24,6 @@ spec:
         name: huggingface
       args:
         - --model_name=qwen-coder
-        - --served-model-name=qwen-coder
         - --max-model-len=32768
       volumeMounts:
         - name: dshm

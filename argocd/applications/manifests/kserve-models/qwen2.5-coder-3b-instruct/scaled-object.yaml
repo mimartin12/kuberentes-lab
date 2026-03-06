@@ -1,0 +1,40 @@
+# KEDA HTTPScaledObject for KServe InferenceService with vLLM backend
+#
+# Uses the KEDA HTTP add-on interceptor proxy to handle scale-to-zero:
+# - 0→1: Interceptor catches incoming requests when pods=0, queues them,
+#         triggers scale-up, and forwards once the pod is ready.
+# - 1→0: After scaledownPeriod with no traffic, scales back to 0.
+#
+# This solves the fundamental problem with Prometheus-based triggers:
+# when pods=0, vLLM isn't running, so metrics don't exist. The HTTP
+# interceptor doesn't need metrics — it just watches for incoming traffic.
+#
+# References:
+# - https://github.com/prokube/kubeflow-examples/pull/41/changes
+# - https://developers.redhat.com/articles/2025/09/23/how-set-kserve-autoscaling-vllm-keda
+apiVersion: http.keda.sh/v1alpha1
+kind: HTTPScaledObject
+metadata:
+  name: qwen-coder-httpscaledobject
+  namespace: kserve-test
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  labels:
+    app: qwen-coder
+spec:
+  hosts:
+    - qwen-coder.kserve-test.svc.cluster.local
+  scaleTargetRef:
+    name: qwen-coder-predictor
+    kind: Deployment
+    apiVersion: apps/v1
+    service: qwen-coder-predictor
+    port: 80
+  replicas:
+    min: 0
+    max: 1
+  # Scale down to 0 after 5 minutes of no traffic
+  scaledownPeriod: 300
+  scalingMetric:
+    concurrency:
+      targetValue: 5

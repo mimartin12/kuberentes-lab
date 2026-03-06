@@ -228,3 +228,54 @@ spec:
           scrape_interval = "15s"
           forward_to      = [prometheus.remote_write.vm.receiver]
         }
+
+        // ─────────────────────────────────────────
+        // vLLM / KServe InferenceService Metrics
+        // ─────────────────────────────────────────
+        discovery.kubernetes "kserve_vllm" {
+          role = "pod"
+          namespaces {
+            names = ["kserve-test"]
+          }
+          selectors {
+            role  = "pod"
+            label = "component=predictor"
+          }
+        }
+
+        discovery.relabel "kserve_vllm" {
+          targets = discovery.kubernetes.kserve_vllm.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_port_number"]
+            regex         = "8080"
+            action        = "keep"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_serving_kserve_io_inferenceservice"]
+            target_label  = "inferenceservice"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label  = "node"
+          }
+          rule {
+            target_label  = "job"
+            replacement   = "kserve-vllm"
+          }
+        }
+
+        prometheus.scrape "kserve_vllm" {
+          targets         = discovery.relabel.kserve_vllm.output
+          metrics_path    = "/metrics"
+          scrape_interval = "15s"
+          forward_to      = [prometheus.remote_write.vm.receiver]
+        }
