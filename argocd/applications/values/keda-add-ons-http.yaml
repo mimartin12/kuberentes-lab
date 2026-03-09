@@ -1,0 +1,6 @@
+interceptor:
+  proxy:
+    # Wait up to 5 minutes for GPU model to initialize before timing out
+    waitTimeout: 300s
+  # Increase response header timeout for slow model startups
+  responseHeaderTimeout: 300s
