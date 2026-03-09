@@ -7,8 +7,7 @@ spec:
   goTemplateOptions: ["missingkey=error"]
   generators:
   - list:
-      elements:
-      - model: Qwen2.5-Coder-3B-Instruct
+      elements: []
   template:
     metadata:
       name: '{{.model | normalize }}-kserve'
