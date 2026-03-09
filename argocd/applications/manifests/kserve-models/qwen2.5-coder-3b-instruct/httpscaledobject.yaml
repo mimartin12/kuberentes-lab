@@ -1,0 +1,23 @@
+apiVersion: http.keda.sh/v1alpha1
+kind: HTTPScaledObject
+metadata:
+  name: qwen-coder
+  namespace: kserve-test
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  hosts:
+    - qwen-coder-kserve-test.example.com
+  pathPrefixes:
+    - /
+  scaleTargetRef:
+    name: qwen-coder-predictor
+    kind: Deployment
+    apiVersion: apps/v1
+    service: qwen-coder-predictor
+    port: 80
+  replicas:
+    min: 0
+    max: 1
+  scaledownPeriod: 300
+  targetPendingRequests: 1

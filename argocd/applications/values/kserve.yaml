@@ -2,6 +2,7 @@ kserve:
   controller:
     deploymentMode: Standard
     gateway:
+      disableIngressCreation: true
       ingressGateway:
         className: cilium
   servingruntime:
