@@ -26,7 +26,7 @@ config:
     - name: talos-worker-01
       ip: "192.168.1.162"
       role: worker
-      cpu: 2
+      cpu: 4
       memory: 16384
       talosImage: gpu
       install_disk: "/dev/sda"
@@ -45,7 +45,7 @@ config:
     - name: talos-worker-02
       ip: "192.168.1.163"
       role: worker
-      cpu: 2
+      cpu: 4
       memory: 4096
     # External Nodes
     # - name: talos-worker-micro-01

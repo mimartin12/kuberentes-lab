@@ -57,7 +57,7 @@ spec:
           mountPath: /mnt/models
         resources:
           requests:
-            memory: 1Gi
+            memory: 512Mi
             cpu: 200m
       volumes:
       - name: model-store

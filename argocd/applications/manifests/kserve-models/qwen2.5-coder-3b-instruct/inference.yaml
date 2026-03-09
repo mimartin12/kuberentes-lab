@@ -5,10 +5,29 @@ metadata:
   namespace: kserve-test
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+    serving.kserve.io/autoscalerClass: "keda"
 spec:
   predictor:
     minReplicas: 0
     maxReplicas: 1
+    autoScaling:
+      metrics:
+        - type: External
+          external:
+            metric:
+              backend: prometheus
+              serverAddress: "http://192.168.1.200:9090"
+              query: "sum(vllm:num_requests_running{model_name='qwen-coder'})"
+            target:
+              type: Value
+              value: "5"
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 60
     tolerations:
       - key: nvidia.com/gpu
         operator: Exists
