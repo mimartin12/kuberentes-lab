@@ -1,0 +1,231 @@
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ollama-model-store-pv
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  local:
+    path: /var/mnt/model-store
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: model-store
+              operator: In
+              values:
+                - "true"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-model-store-pvc
+  namespace: openclaw-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  volumeName: ollama-model-store-pv
+  resources:
+    requests:
+      storage: 20Gi
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: openclaw-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: ollama
+  template:
+    metadata:
+      labels:
+        name: ollama
+    spec:
+      # Set the runtime class you want this Pod to use. Replace the placeholder below.
+      runtimeClassName: "nvidia"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      tolerations:
+      - key: "nvidia.com/gpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+      containers:
+      - name: ollama
+        image: ollama/ollama:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - "ALL"
+        ports:
+        - name: http
+          containerPort: 11434
+          protocol: TCP
+        env:
+        - name: OLLAMA_API_KEY
+          value: "ollama-local"
+        - name: OLLAMA_MODELS
+          value: "/var/mnt/model-store"
+        volumeMounts:
+        - name: model-store
+          mountPath: /var/mnt/model-store
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "10Gi"
+          limits:
+            cpu: "1"
+            memory: "24Gi"
+      volumes:
+      - name: model-store
+        persistentVolumeClaim:
+          claimName: ollama-model-store-pvc
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: openclaw-operator
+spec:
+  type: ClusterIP
+  selector:
+    name: ollama
+  ports:
+  - port: 80
+    name: http
+    targetPort: http
+    protocol: TCP
+
+---
+
+apiVersion: openclaw.rocks/v1alpha1
+kind: OpenClawInstance
+metadata:
+  name: my-test-agent
+  namespace: openclaw-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  webTerminal:
+    enabled: true
+    readOnly: false
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "64Mi"
+      limits:
+        cpu: "200m"
+        memory: "128Mi"
+
+  # ── LLM & Ollama Sidecar Configuration ──────────────────
+  ollama:
+    enabled: false
+    gpu: 1
+    models:
+      - "llama3.1:8b-instruct-q8_0"
+    storage:
+      existingClaim: ollama-model-store-pvc
+    resources:
+      requests:
+        cpu: "500m"
+        memory: 10Gi
+      limits:
+        cpu: "1"
+        memory: 24Gi
+  config:
+    raw:
+      agents:
+        defaults:
+          model:
+            primary: "ollama/llama3.1:8b-instruct-q8_0"
+      session:
+        scope: "per-sender"
+
+  # ── Skills (npm MCP servers & ClawHub skills) ─────────────
+  skills:
+    - "npm:@openclaw/matrix"
+    - "npm:@delorenj/mcp-server-trello"
+    - "npm:@presto-ai/google-workspace-mcp"
+
+  # ── Chromium Sidecar ──────────────────────────────────────
+  chromium:
+    enabled: true
+    resources:
+      requests:
+        cpu: "150m"
+        memory: 256Mi
+      limits:
+        cpu: "300m"
+        memory: 512Mi
+
+  # ── Environment ───────────────────────────────────────────
+  env:
+    - name: OPENCLAW_LOG_LEVEL
+      value: "debug"
+    - name: OPENAI_API_KEY
+      value: "not-needed"
+    - name: OPENAI_BASE_URL
+      value: "http://ollama.openclaw-operator.svc.cluster.local:11434/v1"
+    # - name: OPENAI_BASE_URL
+    #   value: "http://keda-add-ons-http-interceptor-proxy.keda.svc.cluster.local:8080/v1"
+  # envFrom:
+  #   - secretRef:
+  #       name: openclaw-integration-keys
+
+  # ── Runtime Dependencies ──────────────────────────────────
+  runtimeDeps:
+    pnpm: true
+    python: true
+
+  # ── Persistent Storage ────────────────────────────────────
+  storage:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+  # ── Container Resources ───────────────────────────────────
+  resources:
+    requests:
+      cpu: "500m"
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+
+  # ── Network Policy ────────────────────────────────────────
+  # Disabled — replaced by CiliumNetworkPolicy for FQDN-based
+  # egress filtering. See cilium-netpol.yaml.
+  security:
+    networkPolicy:
+      enabled: false
+
+  availability:
+    tolerations:
+      - key: "nvidia.com/gpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+    # nodeSelector:
+    #   nvidia.com/gpu.present: "true"
+ 

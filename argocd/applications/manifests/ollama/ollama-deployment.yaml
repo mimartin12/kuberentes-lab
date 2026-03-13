@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: openclaw-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: ollama
+  template:
+    metadata:
+      labels:
+        name: ollama
+    spec:
+      runtimeClassName: "nvidia"
+      containers:
+      - name: ollama
+        image: ollama/ollama:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 11434
+          protocol: TCP
+        env:
+        - name: OLLAMA_API_KEY
+          value: "ollama-local"
+        volumeMounts:
+        - name: model-store
+          mountPath: /var/mnt/model-store
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "10Gi"
+          limits:
+            cpu: "1"
+            memory: "24Gi"
+      volumes:
+      - name: model-store
+        persistentVolumeClaim:
+          claimName: ollama-model-store-pvc
